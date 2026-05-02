@@ -1,0 +1,543 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Study - AI Study Assistant</title>
+    <link rel="stylesheet" href="../styles.css">
+    <style>
+        .study-container {
+            max-width: 1400px;
+            margin: 0 auto;
+            padding: 2rem 20px;
+            min-height: calc(100vh - 200px);
+        }
+
+        .study-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 2rem;
+            flex-wrap: wrap;
+            gap: 1rem;
+        }
+
+        .study-title h1 {
+            font-size: 2rem;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .study-title p {
+            color: #6b7280;
+        }
+
+        .study-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        /* Tab Navigation */
+        .study-tabs {
+            display: flex;
+            gap: 0.5rem;
+            background: white;
+            padding: 0.5rem;
+            border-radius: 12px;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+            overflow-x: auto;
+        }
+
+        .tab-btn {
+            padding: 0.75rem 1.5rem;
+            border: none;
+            background: transparent;
+            color: #6b7280;
+            font-weight: 600;
+            border-radius: 8px;
+            cursor: pointer;
+            transition: all 0.3s;
+            white-space: nowrap;
+        }
+
+        .tab-btn:hover {
+            background: #f3f4f6;
+        }
+
+        .tab-btn.active {
+            background: #6366f1;
+            color: white;
+        }
+
+        /* Tab Content */
+        .tab-content {
+            display: none;
+        }
+
+        .tab-content.active {
+            display: block;
+            animation: fadeIn 0.3s;
+        }
+
+        @keyframes fadeIn {
+            from { opacity: 0; transform: translateY(10px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        /* Note Info Card */
+        .note-info-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .note-header {
+            display: flex;
+            align-items: center;
+            gap: 1.5rem;
+        }
+
+        .note-icon-large {
+            font-size: 3rem;
+            background: #eef2ff;
+            padding: 1rem;
+            border-radius: 12px;
+        }
+
+        .note-details h2 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 0.25rem;
+        }
+
+        .note-meta {
+            color: #6b7280;
+            font-size: 0.9rem;
+        }
+
+        /* Content Card */
+        .content-card {
+            background: white;
+            padding: 2rem;
+            border-radius: 15px;
+            box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+            margin-bottom: 2rem;
+        }
+
+        .content-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .content-header h3 {
+            font-size: 1.3rem;
+            color: #1f2937;
+        }
+
+        /* Empty State */
+        .empty-state {
+            text-align: center;
+            padding: 4rem 2rem;
+            background: #f9fafb;
+            border-radius: 15px;
+        }
+
+        .empty-icon {
+            font-size: 4rem;
+            margin-bottom: 1rem;
+        }
+
+        .empty-state h3 {
+            font-size: 1.5rem;
+            color: #1f2937;
+            margin-bottom: 0.5rem;
+        }
+
+        .empty-state p {
+            color: #6b7280;
+            margin-bottom: 1.5rem;
+        }
+
+        /* Summary Content */
+        .summary-text {
+            line-height: 1.8;
+            color: #374151;
+            font-size: 1.05rem;
+        }
+
+        .summary-text p {
+            margin-bottom: 1rem;
+        }
+
+        /* Quiz */
+        .quiz-question {
+            background: #f9fafb;
+            padding: 2rem;
+            border-radius: 12px;
+            margin-bottom: 2rem;
+        }
+
+        .question-number {
+            color: #6366f1;
+            font-weight: 600;
+            margin-bottom: 0.5rem;
+        }
+
+        .question-text {
+            font-size: 1.2rem;
+            color: #1f2937;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .quiz-options {
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+        }
+
+        .quiz-option {
+            background: white;
+            padding: 1rem 1.5rem;
+            border: 2px solid #e5e7eb;
+            border-radius: 10px;
+            cursor: pointer;
+            transition: all 0.3s;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+        }
+
+        .quiz-option:hover {
+            border-color: #6366f1;
+            background: #f9fafb;
+        }
+
+        .quiz-option.selected {
+            border-color: #6366f1;
+            background: #eef2ff;
+        }
+
+        .quiz-option.correct {
+            border-color: #10b981;
+            background: #ecfdf5;
+        }
+
+        .quiz-option.incorrect {
+            border-color: #ef4444;
+            background: #fef2f2;
+        }
+
+        .option-letter {
+            width: 32px;
+            height: 32px;
+            background: #f3f4f6;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 600;
+            color: #6b7280;
+        }
+
+        .quiz-option.selected .option-letter {
+            background: #6366f1;
+            color: white;
+        }
+
+        .quiz-option.correct .option-letter {
+            background: #10b981;
+            color: white;
+        }
+
+        .quiz-option.incorrect .option-letter {
+            background: #ef4444;
+            color: white;
+        }
+
+        .quiz-explanation {
+            background: #eef2ff;
+            padding: 1rem;
+            border-radius: 8px;
+            margin-top: 1rem;
+            display: none;
+        }
+
+        .quiz-explanation.show {
+            display: block;
+        }
+
+        .quiz-actions {
+            display: flex;
+            gap: 1rem;
+            margin-top: 2rem;
+        }
+
+        /* Flashcards */
+        .flashcard-container {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .flashcard {
+            background: white;
+            border: 2px solid #e5e7eb;
+            border-radius: 15px;
+            padding: 2rem;
+            min-height: 200px;
+            cursor: pointer;
+            transition: all 0.3s;
+            position: relative;
+            perspective: 1000px;
+        }
+
+        .flashcard:hover {
+            transform: translateY(-5px);
+            box-shadow: 0 10px 20px rgba(0, 0, 0, 0.1);
+        }
+
+        .flashcard-inner {
+            position: relative;
+            width: 100%;
+            height: 100%;
+            text-align: center;
+            transition: transform 0.6s;
+            transform-style: preserve-3d;
+        }
+
+        .flashcard.flipped .flashcard-inner {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-front, .flashcard-back {
+            position: absolute;
+            width: 100%;
+            height: 100%;
+            backface-visibility: hidden;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+        }
+
+        .flashcard-back {
+            transform: rotateY(180deg);
+        }
+
+        .flashcard-label {
+            font-size: 0.85rem;
+            color: #6366f1;
+            font-weight: 600;
+            margin-bottom: 1rem;
+        }
+
+        .flashcard-text {
+            font-size: 1.1rem;
+            color: #1f2937;
+            line-height: 1.6;
+        }
+
+        .flip-hint {
+            position: absolute;
+            bottom: 1rem;
+            right: 1rem;
+            font-size: 0.8rem;
+            color: #9ca3af;
+        }
+
+        /* Buttons */
+        .btn-primary {
+            background: #6366f1;
+            color: white;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        .btn-primary:disabled {
+            background: #9ca3af;
+            cursor: not-allowed;
+        }
+
+        .btn-secondary {
+            background: #f3f4f6;
+            color: #1f2937;
+            padding: 0.875rem 1.5rem;
+            border: none;
+            border-radius: 10px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .btn-secondary:hover {
+            background: #e5e7eb;
+        }
+
+        /* Loading State */
+        .loading-state {
+            text-align: center;
+            padding: 4rem 2rem;
+        }
+
+        .loading-spinner {
+            width: 60px;
+            height: 60px;
+            border: 4px solid #e5e7eb;
+            border-top-color: #6366f1;
+            border-radius: 50%;
+            animation: spin 0.8s linear infinite;
+            margin: 0 auto 1.5rem;
+        }
+
+        @keyframes spin {
+            to { transform: rotate(360deg); }
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .study-header {
+                flex-direction: column;
+                align-items: flex-start;
+            }
+
+            .study-tabs {
+                overflow-x: auto;
+            }
+
+            .note-header {
+                flex-direction: column;
+                text-align: center;
+            }
+
+            .flashcard-container {
+                grid-template-columns: 1fr;
+            }
+
+            .quiz-actions {
+                flex-direction: column;
+            }
+        }
+    </style>
+</head>
+<body>
+    <!-- Navigation -->
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎓</span>
+                <span class="logo-text">AI Study Assistant</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="dashboard-refactored.html" style="color: #6366f1; text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Study Container -->
+    <div class="study-container">
+        <!-- Note Info -->
+        <div class="note-info-card" id="note-info">
+            <div class="note-header">
+                <div class="note-icon-large">📄</div>
+                <div class="note-details">
+                    <h2 id="note-title">Loading...</h2>
+                    <p class="note-meta" id="note-meta">Please wait...</p>
+                </div>
+            </div>
+        </div>
+
+        <!-- Study Tabs -->
+        <div class="study-tabs">
+            <button class="tab-btn active" data-tab="summary">📝 Summary</button>
+            <button class="tab-btn" data-tab="quiz">❓ Quiz</button>
+            <button class="tab-btn" data-tab="flashcards">🎴 Flashcards</button>
+        </div>
+
+        <!-- Summary Tab -->
+        <div class="tab-content active" id="summary-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h3>AI-Generated Summary</h3>
+                    <button class="btn-primary" id="generate-summary-btn">
+                        ✨ Generate Summary
+                    </button>
+                </div>
+                <div id="summary-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">📝</div>
+                        <h3>No Summary Yet</h3>
+                        <p>Click "Generate Summary" to create an AI-powered summary of your notes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Quiz Tab -->
+        <div class="tab-content" id="quiz-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h3>Practice Quiz</h3>
+                    <button class="btn-primary" id="generate-quiz-btn">
+                        ✨ Generate Quiz
+                    </button>
+                </div>
+                <div id="quiz-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">❓</div>
+                        <h3>No Quiz Yet</h3>
+                        <p>Click "Generate Quiz" to create practice questions from your notes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+
+        <!-- Flashcards Tab -->
+        <div class="tab-content" id="flashcards-tab">
+            <div class="content-card">
+                <div class="content-header">
+                    <h3>Study Flashcards</h3>
+                    <button class="btn-primary" id="generate-flashcards-btn">
+                        ✨ Generate Flashcards
+                    </button>
+                </div>
+                <div id="flashcards-content">
+                    <div class="empty-state">
+                        <div class="empty-icon">🎴</div>
+                        <h3>No Flashcards Yet</h3>
+                        <p>Click "Generate Flashcards" to create study cards from your notes</p>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+
+    <!-- Footer -->
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 AI Study Assistant. All rights reserved.</p>
+        </div>
+    </footer>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/9.22.0/firebase-firestore-compat.js"></script>
+
+    <!-- Refactored Modular Code -->
+    <script type="module" src="../src/pages/study-page.js"></script>
+</body>
+</html>
