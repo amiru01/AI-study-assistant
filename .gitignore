@@ -1,0 +1,128 @@
+# AI Study Assistant - Git Ignore File
+
+# ============================================
+# FIREBASE CONFIGURATION (IMPORTANT!)
+# ============================================
+# Uncomment the line below if you've added your real Firebase credentials
+# This prevents accidentally committing your API keys to public repositories
+# firebase-config.js
+
+# ============================================
+# NODE MODULES (if using npm/yarn)
+# ============================================
+node_modules/
+npm-debug.log
+yarn-error.log
+package-lock.json
+yarn.lock
+
+# ============================================
+# ENVIRONMENT FILES
+# ============================================
+.env
+.env.local
+.env.development
+.env.production
+.env.test
+
+# ============================================
+# IDE / EDITOR FILES
+# ============================================
+# Visual Studio Code
+.vscode/
+*.code-workspace
+
+# JetBrains IDEs (WebStorm, IntelliJ, etc.)
+.idea/
+*.iml
+*.iws
+
+# Sublime Text
+*.sublime-project
+*.sublime-workspace
+
+# Atom
+.atom/
+
+# ============================================
+# OPERATING SYSTEM FILES
+# ============================================
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+._*
+
+# Windows
+Thumbs.db
+ehthumbs.db
+Desktop.ini
+$RECYCLE.BIN/
+
+# Linux
+*~
+.directory
+
+# ============================================
+# BUILD / DIST FILES
+# ============================================
+dist/
+build/
+out/
+*.min.js
+*.min.css
+
+# ============================================
+# LOGS
+# ============================================
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# ============================================
+# TEMPORARY FILES
+# ============================================
+tmp/
+temp/
+*.tmp
+*.bak
+*.swp
+*~.nib
+
+# ============================================
+# TESTING
+# ============================================
+coverage/
+.nyc_output/
+*.lcov
+
+# ============================================
+# FIREBASE SPECIFIC
+# ============================================
+.firebase/
+.firebaserc
+firebase-debug.log
+firestore-debug.log
+ui-debug.log
+
+# ============================================
+# UPLOADS (if storing locally during dev)
+# ============================================
+uploads/
+user-uploads/
+
+# ============================================
+# CACHE
+# ============================================
+.cache/
+.parcel-cache/
+.eslintcache
+
+# ============================================
+# MISC
+# ============================================
+*.zip
+*.tar.gz
+*.rar
