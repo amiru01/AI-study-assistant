@@ -1,387 +1,487 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
-    <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>AI Study Assistant - Learn Smarter</title>
-    <link rel="preconnect" href="https://fonts.googleapis.com">
-    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-    <link href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap" rel="stylesheet">
-    <link rel="stylesheet" href="styles.css">
-</head>
-<body>
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600;700&family=Poppins:wght@600;700;800&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="styles.css" />
+  </head>
+  <body>
     <!-- Navigation -->
     <nav class="navbar">
-        <div class="nav-container">
-            <div class="logo">
-                <span class="logo-mark">AI</span>
-                <span class="logo-text">AI Study Assistant</span>
-            </div>
-            <div class="nav-links">
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="#use-cases">Use Cases</a>
-                <a href="#pricing">Pricing</a>
-                <a href="auth.html" class="btn-secondary">Login</a>
-                <a href="auth.html" class="btn-primary">Get Started</a>
-            </div>
+      <div class="nav-container">
+        <div class="logo">
+          <span class="logo-mark">AI</span>
+          <span class="logo-text">AI Study Assistant</span>
         </div>
+        <div class="nav-links">
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#use-cases">Use Cases</a>
+          <a href="#pricing">Pricing</a>
+          <a href="public/auth-refactored.html" class="btn-secondary">Login</a>
+          <a href="public/auth-refactored.html" class="btn-primary">Get Started</a>
+        </div>
+      </div>
     </nav>
 
     <!-- Hero Section -->
     <section class="hero">
-        <div class="hero-content">
-            <h1 class="hero-title">Study Smarter with AI</h1>
-            <p class="hero-subtitle">Upload your notes and let AI generate summaries, quizzes, and flashcards instantly</p>
-            <div class="hero-buttons">
-                <a href="auth.html" class="btn-large btn-primary">Start Learning Free</a>
-                <a href="#how-it-works" class="btn-large btn-outline">See How It Works</a>
-            </div>
-            <div class="hero-stats">
-                <div class="stat">
-                    <span class="stat-number">10x</span>
-                    <span class="stat-label">Faster Learning</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number">100%</span>
-                    <span class="stat-label">AI-Powered</span>
-                </div>
-                <div class="stat">
-                    <span class="stat-number">24/7</span>
-                    <span class="stat-label">Available</span>
-                </div>
-            </div>
+      <div class="hero-content">
+        <h1 class="hero-title">Study Smarter with AI</h1>
+        <p class="hero-subtitle">
+          Upload your notes and let AI generate summaries, quizzes, and
+          flashcards instantly
+        </p>
+        <div class="hero-buttons">
+          <a href="public/auth-refactored.html" class="btn-large btn-primary"
+            >Start Learning Free</a
+          >
+          <a href="#how-it-works" class="btn-large btn-outline"
+            >See How It Works</a
+          >
         </div>
+        <div class="hero-stats">
+          <div class="stat">
+            <span class="stat-number">10x</span>
+            <span class="stat-label">Faster Learning</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">100%</span>
+            <span class="stat-label">AI-Powered</span>
+          </div>
+          <div class="stat">
+            <span class="stat-number">24/7</span>
+            <span class="stat-label">Available</span>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Features Section -->
     <section id="features" class="features">
-        <div class="container">
-            <h2 class="section-title">Powerful Features</h2>
-            <p class="section-subtitle">Everything you need to ace your studies</p>
-            
-            <div class="features-grid">
-                <div class="feature-card">
-                    <div class="feature-icon">DOC</div>
-                    <h3>Upload Any Format</h3>
-                    <p>Support for PDFs and images. Just drag and drop your study materials.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">AI</div>
-                    <h3>AI Summaries</h3>
-                    <p>Get concise, intelligent summaries of your notes in seconds.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">QA</div>
-                    <h3>Auto-Generated Quizzes</h3>
-                    <p>Test your knowledge with AI-generated multiple-choice questions.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">FC</div>
-                    <h3>Smart Flashcards</h3>
-                    <p>Convert notes into interactive Q&A flashcards automatically.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">VO</div>
-                    <h3>Voice Explanations</h3>
-                    <p>Listen to your notes with text-to-speech technology.</p>
-                </div>
-                
-                <div class="feature-card">
-                    <div class="feature-icon">CL</div>
-                    <h3>Cloud Storage</h3>
-                    <p>Access your study materials from anywhere, anytime.</p>
-                </div>
-            </div>
+      <div class="container">
+        <h2 class="section-title">Powerful Features</h2>
+        <p class="section-subtitle">Everything you need to ace your studies</p>
+
+        <div class="features-grid">
+          <div class="feature-card">
+            <div class="feature-icon">DOC</div>
+            <h3>Upload Any Format</h3>
+            <p>
+              Support for PDFs and images. Just drag and drop your study
+              materials.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">AI</div>
+            <h3>AI Summaries</h3>
+            <p>Get concise, intelligent summaries of your notes in seconds.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">QA</div>
+            <h3>Auto-Generated Quizzes</h3>
+            <p>
+              Test your knowledge with AI-generated multiple-choice questions.
+            </p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">FC</div>
+            <h3>Smart Flashcards</h3>
+            <p>Convert notes into interactive Q&A flashcards automatically.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">VO</div>
+            <h3>Voice Explanations</h3>
+            <p>Listen to your notes with text-to-speech technology.</p>
+          </div>
+
+          <div class="feature-card">
+            <div class="feature-icon">CL</div>
+            <h3>Cloud Storage</h3>
+            <p>Access your study materials from anywhere, anytime.</p>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- How It Works Section -->
     <section id="how-it-works" class="how-it-works">
-        <div class="container">
-            <h2 class="section-title">How It Works</h2>
-            <p class="section-subtitle">Get started in 3 simple steps</p>
-            
-            <div class="steps">
-                <div class="step">
-                    <div class="step-number">1</div>
-                    <div class="step-content">
-                        <h3>Upload Your Notes</h3>
-                        <p>Drag and drop PDFs or images of your study materials</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">2</div>
-                    <div class="step-content">
-                        <h3>AI Processes Content</h3>
-                        <p>Our AI extracts text and generates learning materials</p>
-                    </div>
-                </div>
-                
-                <div class="step">
-                    <div class="step-number">3</div>
-                    <div class="step-content">
-                        <h3>Study & Excel</h3>
-                        <p>Access summaries, quizzes, and flashcards instantly</p>
-                    </div>
-                </div>
+      <div class="container">
+        <h2 class="section-title">How It Works</h2>
+        <p class="section-subtitle">Get started in 3 simple steps</p>
+
+        <div class="steps">
+          <div class="step">
+            <div class="step-number">1</div>
+            <div class="step-content">
+              <h3>Upload Your Notes</h3>
+              <p>Drag and drop PDFs or images of your study materials</p>
             </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">2</div>
+            <div class="step-content">
+              <h3>AI Processes Content</h3>
+              <p>Our AI extracts text and generates learning materials</p>
+            </div>
+          </div>
+
+          <div class="step">
+            <div class="step-number">3</div>
+            <div class="step-content">
+              <h3>Study & Excel</h3>
+              <p>Access summaries, quizzes, and flashcards instantly</p>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Study Workspace Preview -->
     <section class="workspace-preview">
-        <div class="container preview-layout">
-            <div class="preview-copy">
-                <span class="section-kicker">Study workflow</span>
-                <h2 class="section-title align-left">Turn messy notes into a clear study plan</h2>
-                <p class="section-subtitle align-left">Organize uploaded materials, review AI summaries, practice with quizzes, and track what needs another pass.</p>
-                <div class="preview-checklist">
-                    <div class="check-item">
-                        <span class="check-mark">&#10003;</span>
-                        <span>Priority topics are highlighted automatically.</span>
-                    </div>
-                    <div class="check-item">
-                        <span class="check-mark">&#10003;</span>
-                        <span>Flashcards and quizzes stay linked to each source.</span>
-                    </div>
-                    <div class="check-item">
-                        <span class="check-mark">&#10003;</span>
-                        <span>Progress cues help you focus before exams.</span>
-                    </div>
-                </div>
+      <div class="container preview-layout">
+        <div class="preview-copy">
+          <span class="section-kicker">Study workflow</span>
+          <h2 class="section-title align-left">
+            Turn messy notes into a clear study plan
+          </h2>
+          <p class="section-subtitle align-left">
+            Organize uploaded materials, review AI summaries, practice with
+            quizzes, and track what needs another pass.
+          </p>
+          <div class="preview-checklist">
+            <div class="check-item">
+              <span class="check-mark">&#10003;</span>
+              <span>Priority topics are highlighted automatically.</span>
             </div>
-            <div class="study-panel">
-                <div class="panel-header">
-                    <span class="panel-dot"></span>
-                    <span class="panel-dot cyan"></span>
-                    <span class="panel-dot muted"></span>
-                </div>
-                <div class="upload-preview">
-                    <span class="upload-icon">PDF</span>
-                    <div>
-                        <h3>Biology chapter notes</h3>
-                        <p>AI summary ready in 18 seconds</p>
-                    </div>
-                </div>
-                <div class="insight-list">
-                    <div class="insight-item">
-                        <span>Summary</span>
-                        <strong>12 key points</strong>
-                    </div>
-                    <div class="insight-item">
-                        <span>Quiz</span>
-                        <strong>20 questions</strong>
-                    </div>
-                    <div class="insight-item">
-                        <span>Flashcards</span>
-                        <strong>34 cards</strong>
-                    </div>
-                </div>
-                <div class="progress-card">
-                    <div class="progress-label">
-                        <span>Exam readiness</span>
-                        <strong>76%</strong>
-                    </div>
-                    <div class="progress-track">
-                        <div class="progress-fill"></div>
-                    </div>
-                </div>
+            <div class="check-item">
+              <span class="check-mark">&#10003;</span>
+              <span>Flashcards and quizzes stay linked to each source.</span>
             </div>
+            <div class="check-item">
+              <span class="check-mark">&#10003;</span>
+              <span>Progress cues help you focus before exams.</span>
+            </div>
+          </div>
         </div>
+        <div class="study-panel">
+          <div class="panel-header">
+            <span class="panel-dot"></span>
+            <span class="panel-dot cyan"></span>
+            <span class="panel-dot muted"></span>
+          </div>
+          <div class="upload-preview">
+            <span class="upload-icon">PDF</span>
+            <div>
+              <h3>Biology chapter notes</h3>
+              <p>AI summary ready in 18 seconds</p>
+            </div>
+          </div>
+          <div class="insight-list">
+            <div class="insight-item">
+              <span>Summary</span>
+              <strong>12 key points</strong>
+            </div>
+            <div class="insight-item">
+              <span>Quiz</span>
+              <strong>20 questions</strong>
+            </div>
+            <div class="insight-item">
+              <span>Flashcards</span>
+              <strong>34 cards</strong>
+            </div>
+          </div>
+          <div class="progress-card">
+            <div class="progress-label">
+              <span>Exam readiness</span>
+              <strong>76%</strong>
+            </div>
+            <div class="progress-track">
+              <div class="progress-fill"></div>
+            </div>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Use Cases Section -->
     <section id="use-cases" class="use-cases">
-        <div class="container">
-            <h2 class="section-title">Built for every study session</h2>
-            <p class="section-subtitle">Use AI Study Assistant before class, during revision, and when exam pressure is high.</p>
+      <div class="container">
+        <h2 class="section-title">Built for every study session</h2>
+        <p class="section-subtitle">
+          Use AI Study Assistant before class, during revision, and when exam
+          pressure is high.
+        </p>
 
-            <div class="use-case-grid">
-                <div class="use-case-card">
-                    <span class="use-case-icon">EXAM</span>
-                    <h3>Exam preparation</h3>
-                    <p>Convert lecture notes into targeted review sets and focus on the topics that need the most attention.</p>
-                </div>
-                <div class="use-case-card">
-                    <span class="use-case-icon">READ</span>
-                    <h3>Reading assignments</h3>
-                    <p>Summarize long chapters into clear ideas, definitions, and takeaways you can review quickly.</p>
-                </div>
-                <div class="use-case-card">
-                    <span class="use-case-icon">TEAM</span>
-                    <h3>Group study</h3>
-                    <p>Create shared quizzes and flashcards so study groups can practice from the same source material.</p>
-                </div>
-            </div>
+        <div class="use-case-grid">
+          <div class="use-case-card">
+            <span class="use-case-icon">EXAM</span>
+            <h3>Exam preparation</h3>
+            <p>
+              Convert lecture notes into targeted review sets and focus on the
+              topics that need the most attention.
+            </p>
+          </div>
+          <div class="use-case-card">
+            <span class="use-case-icon">READ</span>
+            <h3>Reading assignments</h3>
+            <p>
+              Summarize long chapters into clear ideas, definitions, and
+              takeaways you can review quickly.
+            </p>
+          </div>
+          <div class="use-case-card">
+            <span class="use-case-icon">TEAM</span>
+            <h3>Group study</h3>
+            <p>
+              Create shared quizzes and flashcards so study groups can practice
+              from the same source material.
+            </p>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Learning Tools Section -->
     <section class="learning-tools">
-        <div class="container">
-            <div class="tools-header">
-                <div>
-                    <span class="section-kicker">Learning toolkit</span>
-                    <h2 class="section-title align-left">Everything generated from your notes</h2>
-                </div>
-                <p>Move from passive reading to active recall with tools that work together instead of living in separate apps.</p>
-            </div>
-
-            <div class="tools-grid">
-                <div class="tool-card">
-                    <span>01</span>
-                    <h3>Smart summaries</h3>
-                    <p>Clean explanations, key terms, and important ideas pulled from uploaded materials.</p>
-                </div>
-                <div class="tool-card">
-                    <span>02</span>
-                    <h3>Practice quizzes</h3>
-                    <p>Multiple-choice questions that help students check understanding immediately.</p>
-                </div>
-                <div class="tool-card">
-                    <span>03</span>
-                    <h3>Flashcards</h3>
-                    <p>Quick Q&A cards for memorization, revision, and spaced repetition sessions.</p>
-                </div>
-                <div class="tool-card">
-                    <span>04</span>
-                    <h3>Progress tracking</h3>
-                    <p>Simple readiness signals that show what is improving and what still needs review.</p>
-                </div>
-            </div>
+      <div class="container">
+        <div class="tools-header">
+          <div>
+            <span class="section-kicker">Learning toolkit</span>
+            <h2 class="section-title align-left">
+              Everything generated from your notes
+            </h2>
+          </div>
+          <p>
+            Move from passive reading to active recall with tools that work
+            together instead of living in separate apps.
+          </p>
         </div>
+
+        <div class="tools-grid">
+          <div class="tool-card">
+            <span>01</span>
+            <h3>Smart summaries</h3>
+            <p>
+              Clean explanations, key terms, and important ideas pulled from
+              uploaded materials.
+            </p>
+          </div>
+          <div class="tool-card">
+            <span>02</span>
+            <h3>Practice quizzes</h3>
+            <p>
+              Multiple-choice questions that help students check understanding
+              immediately.
+            </p>
+          </div>
+          <div class="tool-card">
+            <span>03</span>
+            <h3>Flashcards</h3>
+            <p>
+              Quick Q&A cards for memorization, revision, and spaced repetition
+              sessions.
+            </p>
+          </div>
+          <div class="tool-card">
+            <span>04</span>
+            <h3>Progress tracking</h3>
+            <p>
+              Simple readiness signals that show what is improving and what
+              still needs review.
+            </p>
+          </div>
+        </div>
+      </div>
     </section>
 
     <!-- Testimonials Section -->
     <section class="testimonials">
-        <div class="container">
-            <h2 class="section-title">Students study with more clarity</h2>
-            <p class="section-subtitle">A cleaner way to review notes, practice questions, and stay organized.</p>
+      <div class="container">
+        <h2 class="section-title">Students study with more clarity</h2>
+        <p class="section-subtitle">
+          A cleaner way to review notes, practice questions, and stay organized.
+        </p>
 
-            <div class="testimonial-grid">
-                <div class="testimonial-card">
-                    <p>"The summaries help me understand long notes faster, and the quiz feature shows what I actually remember."</p>
-                    <div class="student">
-                        <span>AM</span>
-                        <div>
-                            <strong>Amina M.</strong>
-                            <small>Biology student</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card">
-                    <p>"I use the flashcards before every test. It saves a lot of time compared with making them manually."</p>
-                    <div class="student">
-                        <span>JK</span>
-                        <div>
-                            <strong>Jason K.</strong>
-                            <small>Computer science student</small>
-                        </div>
-                    </div>
-                </div>
-                <div class="testimonial-card">
-                    <p>"Uploading class PDFs and getting a study plan makes revision feel much less overwhelming."</p>
-                    <div class="student">
-                        <span>LN</span>
-                        <div>
-                            <strong>Lina N.</strong>
-                            <small>Nursing student</small>
-                        </div>
-                    </div>
-                </div>
+        <div class="testimonial-grid">
+          <div class="testimonial-card">
+            <p>
+              "The summaries help me understand long notes faster, and the quiz
+              feature shows what I actually remember."
+            </p>
+            <div class="student">
+              <span>AM</span>
+              <div>
+                <strong>Amina M.</strong>
+                <small>Biology student</small>
+              </div>
             </div>
+          </div>
+          <div class="testimonial-card">
+            <p>
+              "I use the flashcards before every test. It saves a lot of time
+              compared with making them manually."
+            </p>
+            <div class="student">
+              <span>JK</span>
+              <div>
+                <strong>Jason K.</strong>
+                <small>Computer science student</small>
+              </div>
+            </div>
+          </div>
+          <div class="testimonial-card">
+            <p>
+              "Uploading class PDFs and getting a study plan makes revision feel
+              much less overwhelming."
+            </p>
+            <div class="student">
+              <span>LN</span>
+              <div>
+                <strong>Lina N.</strong>
+                <small>Nursing student</small>
+              </div>
+            </div>
+          </div>
         </div>
+      </div>
     </section>
 
     <!-- Pricing Section -->
     <section id="pricing" class="pricing">
-        <div class="container">
-            <h2 class="section-title">Simple plans for smarter studying</h2>
-            <p class="section-subtitle">Start free, then upgrade when your study workload grows.</p>
+      <div class="container">
+        <h2 class="section-title">Simple plans for smarter studying</h2>
+        <p class="section-subtitle">
+          Start free, then upgrade when your study workload grows.
+        </p>
 
-            <div class="pricing-grid">
-                <div class="pricing-card">
-                    <h3>Free</h3>
-                    <div class="price">$0<span>/month</span></div>
-                    <p>For trying the basics.</p>
-                    <ul>
-                        <li>5 uploads per month</li>
-                        <li>AI summaries</li>
-                        <li>Basic quizzes</li>
-                    </ul>
-                    <a href="auth.html" class="btn-secondary">Start Free</a>
-                </div>
-                <div class="pricing-card featured-plan">
-                    <span class="plan-badge">Popular</span>
-                    <h3>Student</h3>
-                    <div class="price">$8<span>/month</span></div>
-                    <p>For regular study sessions.</p>
-                    <ul>
-                        <li>Unlimited uploads</li>
-                        <li>Quizzes and flashcards</li>
-                        <li>Progress tracking</li>
-                    </ul>
-                    <a href="auth.html" class="btn-primary">Get Started</a>
-                </div>
-                <div class="pricing-card">
-                    <h3>Team</h3>
-                    <div class="price">$18<span>/month</span></div>
-                    <p>For study groups and classes.</p>
-                    <ul>
-                        <li>Shared study spaces</li>
-                        <li>Group quizzes</li>
-                        <li>Class resource library</li>
-                    </ul>
-                    <a href="auth.html" class="btn-secondary">Choose Team</a>
-                </div>
-            </div>
+        <div class="pricing-grid">
+          <div class="pricing-card">
+            <h3>Free</h3>
+            <div class="price">$0<span>/month</span></div>
+            <p>For trying the basics.</p>
+            <ul>
+              <li>5 uploads per month</li>
+              <li>AI summaries</li>
+              <li>Basic quizzes</li>
+            </ul>
+            <a href="public/auth-refactored.html" class="btn-secondary">Start Free</a>
+          </div>
+          <div class="pricing-card featured-plan">
+            <span class="plan-badge">Popular</span>
+            <h3>Student</h3>
+            <div class="price">$8<span>/month</span></div>
+            <p>For regular study sessions.</p>
+            <ul>
+              <li>Unlimited uploads</li>
+              <li>Quizzes and flashcards</li>
+              <li>Progress tracking</li>
+            </ul>
+            <a href="public/auth-refactored.html" class="btn-primary">Get Started</a>
+          </div>
+          <div class="pricing-card">
+            <h3>Team</h3>
+            <div class="price">$18<span>/month</span></div>
+            <p>For study groups and classes.</p>
+            <ul>
+              <li>Shared study spaces</li>
+              <li>Group quizzes</li>
+              <li>Class resource library</li>
+            </ul>
+            <a href="public/auth-refactored.html" class="btn-secondary">Choose Team</a>
+          </div>
         </div>
+      </div>
+    </section>
+
+    <!-- FAQ Section -->
+    <section id="faq" class="faq">
+      <div class="container faq-layout">
+        <div>
+          <span class="section-kicker">Questions</span>
+          <h2 class="section-title align-left">Frequently asked questions</h2>
+        </div>
+        <div class="faq-list">
+          <details open>
+            <summary>What files can I upload?</summary>
+            <p>
+              You can upload PDFs and image-based study materials, then generate
+              summaries, quizzes, and flashcards.
+            </p>
+          </details>
+          <details>
+            <summary>Can I use it for any subject?</summary>
+            <p>
+              Yes. It works well for lecture notes, textbook chapters, exam
+              outlines, and revision sheets across subjects.
+            </p>
+          </details>
+          <details>
+            <summary>Does it replace studying?</summary>
+            <p>
+              No. It helps organize and practice your material, but you still
+              review, answer questions, and decide what to focus on.
+            </p>
+          </details>
+          <details>
+            <summary>Can I access my materials later?</summary>
+            <p>
+              Cloud storage keeps your generated study materials available
+              whenever you come back to review.
+            </p>
+          </details>
+        </div>
+      </div>
     </section>
 
     <!-- CTA Section -->
     <section class="cta">
-        <div class="cta-content">
-            <h2>Ready to Transform Your Study Routine?</h2>
-            <p>Join thousands of students learning smarter with AI</p>
-            <div class="cta-actions">
-                <a href="auth.html" class="btn-large btn-primary">Get Started Now</a>
-                <a href="#pricing" class="btn-large btn-secondary">View Pricing</a>
-            </div>
-        </div>
+      <div class="cta-content">
+        <h2>Ready to Transform Your Study Routine?</h2>
+        <p>Join thousands of students learning smarter with AI</p>
+        <a href="public/auth-refactored.html" class="btn-large btn-primary">Get Started Now</a>
+      </div>
     </section>
 
     <!-- Footer -->
     <footer class="footer">
-        <div class="footer-content">
-            <div class="footer-section">
-                <h4>AI Study Assistant</h4>
-                <p>Empowering students with AI-powered learning tools</p>
-            </div>
-            <div class="footer-section">
-                <h4>Quick Links</h4>
-                <a href="#features">Features</a>
-                <a href="#how-it-works">How It Works</a>
-                <a href="#use-cases">Use Cases</a>
-                <a href="#pricing">Pricing</a>
-                <a href="auth.html">Login</a>
-            </div>
-            <div class="footer-section">
-                <h4>Legal</h4>
-                <a href="#">Privacy Policy</a>
-                <a href="#">Terms of Service</a>
-            </div>
+      <div class="footer-content">
+        <div class="footer-section">
+          <h4>AI Study Assistant</h4>
+          <p>Empowering students with AI-powered learning tools</p>
         </div>
-        <div class="footer-bottom">
-            <p>&copy; 2026 AI Study Assistant. All rights reserved.</p>
+        <div class="footer-section">
+          <h4>Quick Links</h4>
+          <a href="#features">Features</a>
+          <a href="#how-it-works">How It Works</a>
+          <a href="#use-cases">Use Cases</a>
+          <a href="#pricing">Pricing</a>
+          <a href="#faq">FAQ</a>
+          <a href="public/auth-refactored.html">Login</a>
         </div>
+        <div class="footer-section">
+          <h4>Legal</h4>
+          <a href="#">Privacy Policy</a>
+          <a href="#">Terms of Service</a>
+        </div>
+      </div>
+      <div class="footer-bottom">
+        <p>&copy; 2026 AI Study Assistant. All rights reserved.</p>
+      </div>
     </footer>
 
     <script src="script.js"></script>
-</body>
+  </body>
 </html>
