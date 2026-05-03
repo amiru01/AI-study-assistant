@@ -5,7 +5,7 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { getCurrentUser, isAuthenticated, initAuthState } from '../services/supabaseAuthService.js';
 import { uploadFile } from '../services/supabaseStorageService.js';
 import { saveNote } from '../services/supabaseDatabaseService.js';
 import { validateFile } from '../utils/validation.js';
@@ -23,6 +23,9 @@ let selectedFile = null;
  * Initialize upload page
  */
 export async function initUploadPage() {
+    // Initialize auth state first (loads user from Supabase session)
+    await initAuthState();
+    
     // Check authentication
     if (!isAuthenticated()) {
         window.location.href = 'auth-refactored.html';
@@ -30,7 +33,7 @@ export async function initUploadPage() {
     }
 
     // Display user info
-    displayUserInfo();
+    await displayUserInfo();
 
     // Initialize drag & drop
     initDragAndDrop();
@@ -38,21 +41,68 @@ export async function initUploadPage() {
     // Initialize file input
     initFileInput();
 
+    // Attach event listeners for buttons
+    attachEventListeners();
+
     console.log('✅ Upload page initialized');
+}
+
+/**
+ * Attach event listeners to buttons
+ */
+function attachEventListeners() {
+    // Upload button
+    const uploadBtn = document.getElementById('upload-btn');
+    if (uploadBtn) {
+        uploadBtn.addEventListener('click', startUpload);
+        console.log('✅ Upload button event listener attached');
+    }
+
+    // Cancel button
+    const cancelBtn = document.getElementById('cancel-btn');
+    if (cancelBtn) {
+        cancelBtn.addEventListener('click', cancelUpload);
+        console.log('✅ Cancel button event listener attached');
+    }
+
+    // Go to Dashboard button
+    const dashboardBtn = document.getElementById('goto-dashboard-btn');
+    if (dashboardBtn) {
+        dashboardBtn.addEventListener('click', () => {
+            window.location.href = 'dashboard-refactored.html';
+        });
+        console.log('✅ Dashboard button event listener attached');
+    }
+
+    // Upload Another button
+    const uploadAnotherBtn = document.getElementById('upload-another-btn');
+    if (uploadAnotherBtn) {
+        uploadAnotherBtn.addEventListener('click', uploadAnother);
+        console.log('✅ Upload Another button event listener attached');
+    }
 }
 
 // ============================================
 // USER INFO
 // ============================================
 
-function displayUserInfo() {
-    const user = getCurrentUser();
-    
-    if (!user) return;
+async function displayUserInfo() {
+    try {
+        // Get current user (may be async in production)
+        const user = getCurrentUser();
+        
+        if (!user) {
+            console.warn('⚠️ No user found');
+            return;
+        }
 
-    const userEmailEl = document.getElementById('user-email');
-    if (userEmailEl) {
-        userEmailEl.textContent = user.displayName || user.email;
+        const userEmailEl = document.getElementById('user-email');
+        if (userEmailEl) {
+            userEmailEl.textContent = user.displayName || user.email;
+            console.log('✅ User info displayed:', user.email);
+        }
+    } catch (error) {
+        console.error('❌ Error displaying user info:', error);
     }
 }
 
@@ -185,11 +235,16 @@ function getFileIcon(file) {
 /**
  * Start file upload
  */
-window.startUpload = async function() {
+async function startUpload() {
+    console.log('🚀 Upload button clicked!'); // Debug log
+    
     if (!selectedFile) {
+        console.error('❌ No file selected');
         showToast('No file selected', 'error');
         return;
     }
+
+    console.log('📁 Selected file:', selectedFile.name, selectedFile.size, 'bytes');
 
     const uploadBtn = document.getElementById('upload-btn');
     const progressContainer = document.getElementById('upload-progress');
@@ -206,6 +261,8 @@ window.startUpload = async function() {
         progressContainer.classList.add('show');
         progressStatus.textContent = 'Uploading file...';
 
+        console.log('📤 Starting upload...');
+
         // Upload file with progress callback
         const result = await uploadFile(selectedFile, 'notes', (progress) => {
             progressFill.style.width = progress + '%';
@@ -220,6 +277,8 @@ window.startUpload = async function() {
             }
         });
 
+        console.log('✅ Upload complete:', result);
+
         // Save note to database
         progressStatus.textContent = 'Saving to database...';
         
@@ -233,12 +292,15 @@ window.startUpload = async function() {
             extractedText: result.extractedText || '', // Save extracted text
         };
 
+        console.log('💾 Saving note to database...');
         await saveNote(noteData);
 
         // Success!
         progressFill.style.width = '100%';
         progressPercent.textContent = '100%';
         progressStatus.textContent = 'Upload complete!';
+
+        console.log('🎉 Upload successful!');
 
         // Show success message
         setTimeout(() => {
@@ -249,7 +311,7 @@ window.startUpload = async function() {
         showToast('File uploaded successfully!', 'success');
 
     } catch (error) {
-        console.error('Upload error:', error);
+        console.error('❌ Upload error:', error);
         showToast(error.message || 'Upload failed. Please try again.', 'error');
         
         // Reset UI
@@ -257,7 +319,7 @@ window.startUpload = async function() {
         uploadBtn.textContent = 'Upload & Process';
         progressContainer.classList.remove('show');
     }
-};
+}
 
 // ============================================
 // CANCEL & RESET
@@ -266,7 +328,9 @@ window.startUpload = async function() {
 /**
  * Cancel upload
  */
-window.cancelUpload = function() {
+function cancelUpload() {
+    console.log('❌ Upload cancelled');
+    
     // Reset state
     selectedFile = null;
 
@@ -279,12 +343,14 @@ window.cancelUpload = function() {
     // Reset progress
     document.getElementById('progress-fill').style.width = '0%';
     document.getElementById('progress-percent').textContent = '0%';
-};
+}
 
 /**
  * Upload another file
  */
-window.uploadAnother = function() {
+function uploadAnother() {
+    console.log('🔄 Upload another file');
+    
     // Reset everything
     selectedFile = null;
     
@@ -296,7 +362,7 @@ window.uploadAnother = function() {
     // Reset progress
     document.getElementById('progress-fill').style.width = '0%';
     document.getElementById('progress-percent').textContent = '0%';
-};
+}
 
 // Auto-initialize if DOM is ready
 if (document.readyState === 'loading') {

@@ -5,7 +5,7 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { getCurrentUser, isAuthenticated, initAuthState } from '../services/supabaseAuthService.js';
 import { getNote, getGeneratedContent, saveGeneratedContent } from '../services/supabaseDatabaseService.js';
 import { generateSummary, generateQuiz, generateFlashcards } from '../services/aiService.js';
 import { showToast } from '../components/toast.js';
@@ -24,6 +24,9 @@ let currentNoteId = null;
  * Initialize study page
  */
 export async function initStudyPage() {
+    // Initialize auth state first
+    await initAuthState();
+    
     // Check authentication
     if (!isAuthenticated()) {
         window.location.href = 'auth-refactored.html';

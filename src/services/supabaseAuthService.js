@@ -162,20 +162,66 @@ export function getCurrentUser() {
         return currentUser;
     }
 
-    // Production mode - get from Supabase session
+    // Production mode - get from Supabase session synchronously
+    // Note: This uses cached session data
     const supabase = getSupabase();
-    const session = supabase.auth.getSession();
     
-    if (session && session.data.session) {
-        const user = session.data.session.user;
-        currentUser = {
-            uid: user.id,
-            email: user.email,
-            displayName: user.email.split('@')[0],
-        };
+    // Try to get session from cache first
+    if (currentUser) {
+        return currentUser;
     }
     
-    return currentUser;
+    // If no cached user, try to get from Supabase auth state
+    // This is a synchronous check of the current auth state
+    try {
+        const { data: { session } } = supabase.auth.getSession();
+        
+        // Note: getSession() returns a promise, but we need sync access
+        // So we'll use the auth state listener to populate currentUser
+        // For now, return null if not cached
+        return currentUser;
+    } catch (error) {
+        console.error('Error getting current user:', error);
+        return null;
+    }
+}
+
+/**
+ * Initialize auth state (call this on app startup)
+ * @returns {Promise<Object|null>} Current user or null
+ */
+export async function initAuthState() {
+    const supabase = getSupabase();
+    
+    if (!isSupabaseReady()) {
+        const stored = localStorage.getItem('mockUser');
+        if (stored) {
+            currentUser = JSON.parse(stored);
+        }
+        return currentUser;
+    }
+
+    try {
+        const { data: { session }, error } = await supabase.auth.getSession();
+        
+        if (error) throw error;
+        
+        if (session && session.user) {
+            currentUser = {
+                uid: session.user.id,
+                email: session.user.email,
+                displayName: session.user.email.split('@')[0],
+            };
+            console.log('✅ Auth state initialized:', currentUser.email);
+        } else {
+            currentUser = null;
+        }
+        
+        return currentUser;
+    } catch (error) {
+        console.error('Error initializing auth state:', error);
+        return null;
+    }
 }
 
 /**

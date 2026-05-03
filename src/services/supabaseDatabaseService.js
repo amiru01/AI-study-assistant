@@ -18,6 +18,10 @@ export async function saveNote(noteData) {
         const supabase = getSupabase();
         const user = getCurrentUser();
 
+        console.log('💾 Attempting to save note...');
+        console.log('📊 User:', user ? `${user.email} (${user.uid})` : 'NOT AUTHENTICATED');
+        console.log('📊 Note data received:', noteData);
+
         if (!user) {
             throw new Error('User not authenticated');
         }
@@ -34,6 +38,15 @@ export async function saveNote(noteData) {
             updated_at: new Date().toISOString(),
         };
 
+        console.log('📦 Prepared note object:', {
+            user_id: note.user_id,
+            title: note.title,
+            file_name: note.file_name,
+            file_url: note.file_url ? note.file_url.substring(0, 50) + '...' : 'empty',
+            file_size: note.file_size,
+            has_extracted_text: !!note.extracted_text
+        });
+
         // Development mode
         if (!isSupabaseReady()) {
             console.log('🔧 Development mode: Mock save note');
@@ -41,24 +54,50 @@ export async function saveNote(noteData) {
             const notes = getMockNotes();
             notes.push({ id: mockId, ...note });
             localStorage.setItem('mockNotes', JSON.stringify(notes));
+            console.log('✅ Mock note saved:', mockId);
             return mockId;
         }
 
         // Production mode
+        console.log('📤 Inserting into Supabase database...');
         const { data, error } = await supabase
             .from('notes')
             .insert([note])
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Supabase insert error:');
+            console.error('  Code:', error.code);
+            console.error('  Message:', error.message);
+            console.error('  Details:', error.details);
+            console.error('  Hint:', error.hint);
+            console.error('  Full error:', error);
+            throw error;
+        }
 
-        console.log('✅ Note saved:', data.id);
+        console.log('✅ Note saved successfully to database!');
+        console.log('  Note ID:', data.id);
+        console.log('  Title:', data.title);
         return data.id;
 
     } catch (error) {
-        console.error('Save note error:', error);
-        throw new Error('Failed to save note');
+        console.error('❌ Save note error:', error);
+        console.error('  Error type:', error.constructor.name);
+        console.error('  Error message:', error.message);
+        
+        // Provide helpful error messages
+        if (error.code === '42P01') {
+            throw new Error('Database table "notes" does not exist. Please run the setup SQL script.');
+        } else if (error.code === '42501') {
+            throw new Error('Permission denied. Please check Row Level Security policies.');
+        } else if (error.code === '23502') {
+            throw new Error('Missing required field. Check that all required columns have values.');
+        } else if (error.code === '23503') {
+            throw new Error('Invalid user ID. Make sure you are logged in.');
+        } else {
+            throw new Error(`Failed to save note: ${error.message}`);
+        }
     }
 }
 
@@ -262,6 +301,12 @@ export async function saveGeneratedContent(noteId, contentType, content) {
         const supabase = getSupabase();
         const user = getCurrentUser();
 
+        console.log('💾 Attempting to save generated content...');
+        console.log('  Note ID:', noteId);
+        console.log('  Content Type:', contentType);
+        console.log('  User:', user ? user.email : 'NOT AUTHENTICATED');
+        console.log('  Content length:', typeof content === 'string' ? content.length : JSON.stringify(content).length);
+
         if (!user) {
             throw new Error('User not authenticated');
         }
@@ -274,28 +319,59 @@ export async function saveGeneratedContent(noteId, contentType, content) {
             created_at: new Date().toISOString(),
         };
 
+        console.log('📦 Prepared data object:', {
+            note_id: data.note_id,
+            user_id: data.user_id,
+            type: data.type,
+            content_preview: typeof content === 'string' ? content.substring(0, 50) + '...' : 'object',
+        });
+
         // Development mode
         if (!isSupabaseReady()) {
             console.log('🔧 Development mode: Mock save content');
             const mockId = `${contentType}-${Date.now()}`;
+            localStorage.setItem(`mock_${contentType}_${noteId}`, JSON.stringify(content));
             return mockId;
         }
 
         // Production mode
+        console.log('📤 Inserting into Supabase generated_content table...');
         const { data: result, error } = await supabase
             .from('generated_content')
             .insert([data])
             .select()
             .single();
 
-        if (error) throw error;
+        if (error) {
+            console.error('❌ Supabase insert error:');
+            console.error('  Code:', error.code);
+            console.error('  Message:', error.message);
+            console.error('  Details:', error.details);
+            console.error('  Hint:', error.hint);
+            throw error;
+        }
 
-        console.log('✅ Generated content saved:', result.id);
+        console.log('✅ Generated content saved successfully!');
+        console.log('  Content ID:', result.id);
         return result.id;
 
     } catch (error) {
-        console.error('Save content error:', error);
-        throw new Error('Failed to save generated content');
+        console.error('❌ Save content error:', error);
+        console.error('  Error type:', error.constructor.name);
+        console.error('  Error message:', error.message);
+        
+        // Provide helpful error messages
+        if (error.code === '42P01') {
+            throw new Error('Database table "generated_content" does not exist. Please run the setup SQL script.');
+        } else if (error.code === '42501') {
+            throw new Error('Permission denied. Please check Row Level Security policies for generated_content table.');
+        } else if (error.code === '23502') {
+            throw new Error('Missing required field. Check that all required columns have values.');
+        } else if (error.code === '23503') {
+            throw new Error('Invalid note ID or user ID. Make sure the note exists and you are logged in.');
+        } else {
+            throw new Error(`Failed to save generated content: ${error.message}`);
+        }
     }
 }
 

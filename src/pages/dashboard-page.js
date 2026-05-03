@@ -5,7 +5,7 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, logoutUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { getCurrentUser, logoutUser, isAuthenticated, initAuthState } from '../services/supabaseAuthService.js';
 import { getNotes } from '../services/supabaseDatabaseService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
@@ -19,6 +19,9 @@ import { formatDate, formatFileSize } from '../utils/formatting.js';
  * Initialize dashboard page
  */
 export async function initDashboard() {
+    // Initialize auth state first
+    await initAuthState();
+    
     // Check authentication
     if (!isAuthenticated()) {
         window.location.href = 'auth-refactored.html';
@@ -26,7 +29,7 @@ export async function initDashboard() {
     }
 
     // Display user info
-    displayUserInfo();
+    await displayUserInfo();
 
     // Load user notes
     await loadNotes();
@@ -41,10 +44,13 @@ export async function initDashboard() {
 // USER INFO
 // ============================================
 
-function displayUserInfo() {
+async function displayUserInfo() {
     const user = getCurrentUser();
     
-    if (!user) return;
+    if (!user) {
+        console.warn('⚠️ No user found');
+        return;
+    }
 
     // Update user email display
     const userEmailEl = document.getElementById('user-email');

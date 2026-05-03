@@ -19,7 +19,7 @@ export const API_ENDPOINTS = {
 export const API_KEYS = {
     OPENAI: import.meta.env?.VITE_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE',
     OCR_SPACE: import.meta.env?.VITE_OCR_API_KEY || 'YOUR_OCR_API_KEY_HERE',
-    HUGGINGFACE: import.meta.env?.VITE_HUGGINGFACE_TOKEN || 'YOUR_HUGGINGFACE_TOKEN_HERE',
+    HUGGINGFACE: import.meta.env?.VITE_HUGGINGFACE_TOKEN || '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',
     // Add other API keys here
 };
 

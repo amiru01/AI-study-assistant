@@ -385,8 +385,8 @@
 
             <!-- Action Buttons -->
             <div class="action-buttons">
-                <button class="btn-secondary" onclick="cancelUpload()">Cancel</button>
-                <button class="btn-primary" id="upload-btn" onclick="startUpload()">
+                <button class="btn-secondary" id="cancel-btn">Cancel</button>
+                <button class="btn-primary" id="upload-btn">
                     Upload & Process
                 </button>
             </div>
@@ -398,10 +398,10 @@
             <h3>Upload Successful!</h3>
             <p>Your study material has been uploaded and is ready for AI processing</p>
             <div class="success-actions">
-                <button class="btn-primary" onclick="window.location.href='dashboard-refactored.html'">
+                <button class="btn-primary" id="goto-dashboard-btn">
                     Go to Dashboard
                 </button>
-                <button class="btn-secondary" onclick="uploadAnother()">
+                <button class="btn-secondary" id="upload-another-btn">
                     Upload Another
                 </button>
             </div>
