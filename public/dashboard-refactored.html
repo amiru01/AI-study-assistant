@@ -208,39 +208,39 @@
                 <a href="upload.html" class="btn-primary">Upload Now</a>
             </div>
 
-            <div class="dashboard-card" onclick="showComingSoon()">
+            <div class="dashboard-card" onclick="scrollToNotes()">
                 <div class="card-icon">📚</div>
                 <h3>My Notes</h3>
                 <p>View and manage your uploaded materials</p>
-                <a href="#" class="btn-primary" onclick="event.preventDefault(); showComingSoon()">View Notes</a>
+                <a href="#notes-section" class="btn-primary" onclick="event.preventDefault(); scrollToNotes()">View Notes</a>
             </div>
 
-            <div class="dashboard-card" onclick="showComingSoon()">
+            <div class="dashboard-card" onclick="window.location.href='library.html?type=summary'">
                 <div class="card-icon">✨</div>
                 <h3>Summaries</h3>
                 <p>Access AI-generated summaries</p>
-                <a href="#" class="btn-primary" onclick="event.preventDefault(); showComingSoon()">View Summaries</a>
+                <a href="library.html?type=summary" class="btn-primary">View Summaries</a>
             </div>
 
-            <div class="dashboard-card" onclick="showComingSoon()">
+            <div class="dashboard-card" onclick="window.location.href='library.html?type=quiz'">
                 <div class="card-icon">❓</div>
                 <h3>Quizzes</h3>
                 <p>Test your knowledge with quizzes</p>
-                <a href="#" class="btn-primary" onclick="event.preventDefault(); showComingSoon()">Take Quiz</a>
+                <a href="library.html?type=quiz" class="btn-primary">Take Quiz</a>
             </div>
 
-            <div class="dashboard-card" onclick="showComingSoon()">
+            <div class="dashboard-card" onclick="window.location.href='library.html?type=flashcards'">
                 <div class="card-icon">🎴</div>
                 <h3>Flashcards</h3>
                 <p>Study with interactive flashcards</p>
-                <a href="#" class="btn-primary" onclick="event.preventDefault(); showComingSoon()">Study Now</a>
+                <a href="library.html?type=flashcards" class="btn-primary">Study Now</a>
             </div>
 
-            <div class="dashboard-card" onclick="showComingSoon()">
+            <div class="dashboard-card" onclick="window.location.href='library.html?type=all'">
                 <div class="card-icon">📊</div>
                 <h3>Progress</h3>
                 <p>Track your learning progress</p>
-                <a href="#" class="btn-primary" onclick="event.preventDefault(); showComingSoon()">View Stats</a>
+                <a href="library.html?type=all" class="btn-primary">View Stats</a>
             </div>
         </div>
 
@@ -261,10 +261,13 @@
     <!-- Refactored Modular Code -->
     <script type="module" src="../src/pages/dashboard-page.js"></script>
 
-    <!-- Temporary helper function -->
+    <!-- Helper functions -->
     <script>
-        function showComingSoon() {
-            alert('🚀 Coming soon! This feature is under development.');
+        function scrollToNotes() {
+            const notesSection = document.getElementById('notes-container');
+            if (notesSection) {
+                notesSection.scrollIntoView({ behavior: 'smooth', block: 'start' });
+            }
         }
     </script>
 </body>

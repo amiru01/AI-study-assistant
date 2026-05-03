@@ -1,0 +1,30 @@
+﻿<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Library - AI Study Assistant</title>
+    <link rel="stylesheet" href="../styles.css">
+</head>
+<body>
+    <nav class="navbar">
+        <div class="nav-container">
+            <div class="logo">
+                <span class="logo-icon">🎓</span>
+                <span class="logo-text">AI Study Assistant</span>
+            </div>
+            <div style="display: flex; align-items: center; gap: 1rem;">
+                <a href="dashboard-refactored.html" style="color: #6366f1; text-decoration: none; font-weight: 600;">← Back to Dashboard</a>
+            </div>
+        </div>
+    </nav>
+    <div id="library-root"></div>
+    <footer class="footer">
+        <div class="footer-bottom">
+            <p>&copy; 2026 AI Study Assistant. All rights reserved.</p>
+        </div>
+    </footer>
+    <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script type="module" src="../src/pages/library-page.js"></script>
+</body>
+</html>
