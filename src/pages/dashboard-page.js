@@ -5,8 +5,8 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, logoutUser, isAuthenticated } from '../services/authService.js';
-import { getNotes } from '../services/databaseService.js';
+import { getCurrentUser, logoutUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { getNotes } from '../services/supabaseDatabaseService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
 import { formatDate, formatFileSize } from '../utils/formatting.js';
@@ -175,8 +175,7 @@ async function deleteNoteConfirm(noteId) {
     try {
         showLoader('Deleting note...');
 
-        const { deleteNote } = await import('../services/databaseService.js');
-        await deleteNote(noteId);
+         const { deleteNote } = await import('../services/supabaseDatabaseService.js');
 
         showToast('Note deleted successfully', 'success');
         

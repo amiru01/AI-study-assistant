@@ -9,13 +9,14 @@
 import { getStorage, isFirebaseReady } from '../config/firebase.js';
 import { getCurrentUser } from './authService.js';
 import { API_CONFIG } from '../config/api.js';
+import { extractTextFromFile, isTextSufficient } from './textExtractionService.js';
 
 /**
- * Upload a file to Firebase Storage
+ * Upload a file to Firebase Storage and extract text
  * @param {File} file - File object to upload
  * @param {string} folder - Storage folder (e.g., 'notes', 'profiles')
  * @param {Function} onProgress - Progress callback (percent)
- * @returns {Promise<Object>} Upload result with URL and metadata
+ * @returns {Promise<Object>} Upload result with URL, metadata, and extracted text
  */
 export async function uploadFile(file, folder = 'notes', onProgress = null) {
     try {
@@ -25,6 +26,23 @@ export async function uploadFile(file, folder = 'notes', onProgress = null) {
         const user = getCurrentUser();
         if (!user) {
             throw new Error('User not authenticated');
+        }
+
+        // Extract text from file (happens before upload)
+        let extractedText = '';
+        try {
+            console.log('📝 Extracting text from file...');
+            extractedText = await extractTextFromFile(file);
+            
+            if (!isTextSufficient(extractedText)) {
+                console.warn('⚠️ Extracted text may be insufficient for AI processing');
+            } else {
+                console.log(`✅ Extracted ${extractedText.length} characters`);
+            }
+        } catch (extractError) {
+            console.error('Text extraction failed:', extractError);
+            // Continue with upload even if extraction fails
+            extractedText = '';
         }
 
         const storage = getStorage();
@@ -41,13 +59,14 @@ export async function uploadFile(file, folder = 'notes', onProgress = null) {
                 }
             }
 
-            // Return mock data
+            // Return mock data with extracted text
             return {
                 url: URL.createObjectURL(file),
                 path: `${folder}/${user.uid}/${file.name}`,
                 name: file.name,
                 size: file.size,
                 type: file.type,
+                extractedText: extractedText,
             };
         }
 
@@ -85,6 +104,7 @@ export async function uploadFile(file, folder = 'notes', onProgress = null) {
                             name: file.name,
                             size: file.size,
                             type: file.type,
+                            extractedText: extractedText,
                         });
 
                         console.log('✅ File uploaded successfully');

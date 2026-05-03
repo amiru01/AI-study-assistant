@@ -8,12 +8,18 @@
 // API Endpoints
 export const API_ENDPOINTS = {
     OPENAI: 'https://api.openai.com/v1',
+    OCR_SPACE: 'https://api.ocr.space/parse/image',
+    HUGGINGFACE: 'https://api-inference.huggingface.co/models',
     // Add other API endpoints here
 };
 
 // API Keys (should be stored in environment variables in production)
+// IMPORTANT: Replace these with your actual API keys
+// For production, use environment variables: import.meta.env.VITE_OPENAI_API_KEY
 export const API_KEYS = {
-    OPENAI: 'YOUR_OPENAI_API_KEY_HERE',
+    OPENAI: import.meta.env?.VITE_OPENAI_API_KEY || 'YOUR_OPENAI_API_KEY_HERE',
+    OCR_SPACE: import.meta.env?.VITE_OCR_API_KEY || 'YOUR_OCR_API_KEY_HERE',
+    HUGGINGFACE: import.meta.env?.VITE_HUGGINGFACE_TOKEN || 'YOUR_HUGGINGFACE_TOKEN_HERE',
     // Add other API keys here
 };
 

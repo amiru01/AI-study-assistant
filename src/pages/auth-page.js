@@ -5,7 +5,7 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { registerUser, loginUser } from '../services/authService.js';
+import { registerUser, loginUser } from '../services/supabaseAuthService.js';
 import { validateEmail, validatePassword, validatePasswordMatch, validateRequired, validateMinLength } from '../utils/validation.js';
 import { showToast } from '../components/toast.js';
 import { showButtonLoader, hideButtonLoader } from '../components/loader.js';

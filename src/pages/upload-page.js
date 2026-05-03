@@ -5,9 +5,9 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, isAuthenticated } from '../services/authService.js';
-import { uploadFile } from '../services/storageService.js';
-import { saveNote } from '../services/databaseService.js';
+import { getCurrentUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { uploadFile } from '../services/supabaseStorageService.js';
+import { saveNote } from '../services/supabaseDatabaseService.js';
 import { validateFile } from '../utils/validation.js';
 import { formatFileSize } from '../utils/formatting.js';
 import { showToast } from '../components/toast.js';
@@ -230,6 +230,7 @@ window.startUpload = async function() {
             filePath: result.path,
             fileType: result.type,
             fileSize: result.size,
+            extractedText: result.extractedText || '', // Save extracted text
         };
 
         await saveNote(noteData);

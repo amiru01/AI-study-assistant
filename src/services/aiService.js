@@ -1,12 +1,16 @@
 /**
  * AI Service
  * 
- * Handles all AI-related operations (OpenAI API calls).
- * This service generates summaries, quizzes, and flashcards.
+ * Handles all AI-related operations.
+ * Supports both OpenAI (paid) and Hugging Face (free).
  * UI components should call these functions, never API directly.
  */
 
 import { API_ENDPOINTS, API_CONFIG, getApiHeaders, isApiConfigured } from '../config/api.js';
+import { generateSummaryFree, generateQuizFree, generateFlashcardsFree } from './freeAiService.js';
+
+// Choose AI provider: 'openai' or 'free' (Hugging Face)
+const AI_PROVIDER = 'free'; // Change to 'openai' if you have OpenAI API key
 
 /**
  * Generate summary from text using AI
@@ -15,6 +19,12 @@ import { API_ENDPOINTS, API_CONFIG, getApiHeaders, isApiConfigured } from '../co
  * @returns {Promise<string>} Generated summary
  */
 export async function generateSummary(text, maxLength = 200) {
+    // Use free AI provider (Hugging Face) by default
+    if (AI_PROVIDER === 'free') {
+        return generateSummaryFree(text, maxLength);
+    }
+
+    // OpenAI implementation (requires API key)
     try {
         if (!text || text.trim().length === 0) {
             throw new Error('No text provided for summarization');
@@ -73,6 +83,12 @@ export async function generateSummary(text, maxLength = 200) {
  * @returns {Promise<Array>} Array of quiz questions
  */
 export async function generateQuiz(text, numQuestions = 5) {
+    // Use free AI provider (Hugging Face) by default
+    if (AI_PROVIDER === 'free') {
+        return generateQuizFree(text, numQuestions);
+    }
+
+    // OpenAI implementation (requires API key)
     try {
         if (!text || text.trim().length === 0) {
             throw new Error('No text provided for quiz generation');
@@ -136,6 +152,12 @@ export async function generateQuiz(text, numQuestions = 5) {
  * @returns {Promise<Array>} Array of flashcards
  */
 export async function generateFlashcards(text, numCards = 10) {
+    // Use free AI provider (Hugging Face) by default
+    if (AI_PROVIDER === 'free') {
+        return generateFlashcardsFree(text, numCards);
+    }
+
+    // OpenAI implementation (requires API key)
     try {
         if (!text || text.trim().length === 0) {
             throw new Error('No text provided for flashcard generation');

@@ -5,8 +5,8 @@
  * This file contains ONLY UI logic - all business logic is in services
  */
 
-import { getCurrentUser, isAuthenticated } from '../services/authService.js';
-import { getNote, getGeneratedContent, saveGeneratedContent } from '../services/databaseService.js';
+import { getCurrentUser, isAuthenticated } from '../services/supabaseAuthService.js';
+import { getNote, getGeneratedContent, saveGeneratedContent } from '../services/supabaseDatabaseService.js';
 import { generateSummary, generateQuiz, generateFlashcards } from '../services/aiService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
@@ -173,9 +173,9 @@ async function handleGenerateSummary() {
             </div>
         `;
 
-        // Generate summary (using mock text for now)
-        const mockText = getMockNoteText();
-        const summary = await generateSummary(mockText, 200);
+        // Generate summary (using extracted text)
+        const noteText = getNoteText();
+        const summary = await generateSummary(noteText, 200);
 
         // Save to database
         await saveGeneratedContent(currentNoteId, 'summary', summary);
@@ -233,8 +233,8 @@ async function handleGenerateQuiz() {
         `;
 
         // Generate quiz
-        const mockText = getMockNoteText();
-        const quiz = await generateQuiz(mockText, 5);
+        const noteText = getNoteText();
+        const quiz = await generateQuiz(noteText, 5);
 
         // Save to database
         await saveGeneratedContent(currentNoteId, 'quiz', quiz);
@@ -369,8 +369,8 @@ async function handleGenerateFlashcards() {
         `;
 
         // Generate flashcards
-        const mockText = getMockNoteText();
-        const flashcards = await generateFlashcards(mockText, 10);
+        const noteText = getNoteText();
+        const flashcards = await generateFlashcards(noteText, 10);
 
         // Save to database
         await saveGeneratedContent(currentNoteId, 'flashcards', flashcards);
@@ -431,7 +431,21 @@ window.flipCard = function(index) {
 // ============================================
 
 /**
- * Get mock note text for AI processing
+ * Get note text for AI processing
+ * Uses extracted text from the note, or falls back to mock text
+ */
+function getNoteText() {
+    if (currentNote && currentNote.extractedText && currentNote.extractedText.trim().length > 100) {
+        return currentNote.extractedText;
+    }
+    
+    // Fallback to mock text if no extracted text available
+    console.warn('⚠️ No extracted text found, using mock text');
+    return getMockNoteText();
+}
+
+/**
+ * Get mock note text for AI processing (fallback)
  * In production, this would extract text from the uploaded file
  */
 function getMockNoteText() {
