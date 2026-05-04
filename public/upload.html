@@ -1,78 +1,94 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Upload Notes - AI Study Assistant</title>
     <link rel="stylesheet" href="../styles.css" />
-</head>
-<body>
+  </head>
+  <body>
     <header class="page-header">
-        <div class="page-header-inner">
-            <div>
-                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
-                <h1>Upload Notes</h1>
-                <p>Upload your study materials to generate summaries, quizzes, and flashcards.</p>
-            </div>
-            <div class="user-badge">Signed in as <strong id="user-email">Loading...</strong></div>
+      <div class="page-header-inner">
+        <div>
+          <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+          <h1>Upload Notes</h1>
+          <p>
+            Upload your study materials to generate summaries, quizzes, and
+            flashcards.
+          </p>
         </div>
+        <div class="user-badge">
+          Signed in as <strong id="user-email">Loading...</strong>
+        </div>
+      </div>
     </header>
 
     <main class="page-content upload-page">
-        <section class="upload-panel">
-            <div id="upload-zone" class="upload-zone">
-                <div class="upload-icon">📤</div>
-                <h2>Drag & drop your file here</h2>
-                <p>or click the button to select a PDF or image.</p>
-                <button class="btn btn-primary" id="browseBtn">Browse Files</button>
-            </div>
+      <section class="upload-panel">
+        <div id="upload-zone" class="upload-zone">
+          <div class="upload-icon">📤</div>
+          <h2>Drag & drop your file here</h2>
+          <p>or click the button to select a PDF or image.</p>
+          <button class="btn btn-primary" id="browseBtn">Browse Files</button>
+        </div>
 
-            <input type="file" id="file-input" accept=".pdf,.jpg,.jpeg,.png" hidden />
+        <input
+          type="file"
+          id="file-input"
+          accept=".pdf,.jpg,.jpeg,.png"
+          hidden
+        />
 
-            <div id="file-preview" class="file-preview">
-                <div class="file-preview-header">
-                    <div class="file-preview-icon" id="file-icon">📄</div>
-                    <div>
-                        <div class="file-preview-name" id="file-name">Filename.pdf</div>
-                        <div class="file-preview-meta">
-                            <span id="file-type">PDF</span>
-                            <span id="file-size">0 MB</span>
-                        </div>
-                    </div>
-                </div>
-                <div class="file-status" id="file-status">Ready to upload</div>
-                <div class="file-details">
-                    <div>Size: <span id="file-size-meta">0 MB</span></div>
-                </div>
-                <div class="upload-actions">
-                    <button class="btn btn-primary" id="upload-btn">Upload & Process</button>
-                    <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
-                </div>
+        <div id="file-preview" class="file-preview">
+          <div class="file-preview-header">
+            <div class="file-preview-icon" id="file-icon">📄</div>
+            <div>
+              <div class="file-preview-name" id="file-name">Filename.pdf</div>
+              <div class="file-preview-meta">
+                <span id="file-type">PDF</span>
+                <span id="file-size">0 MB</span>
+              </div>
             </div>
+          </div>
+          <div class="file-status" id="file-status">Ready to upload</div>
+          <div class="file-details">
+            <div>Size: <span id="file-size-meta">0 MB</span></div>
+          </div>
+          <div class="upload-actions">
+            <button class="btn btn-primary" id="upload-btn">
+              Upload & Process
+            </button>
+            <button class="btn btn-secondary" id="cancel-btn">Cancel</button>
+          </div>
+        </div>
 
-            <div id="upload-progress" class="upload-progress">
-                <div class="progress-bar">
-                    <div id="progress-fill" class="progress-fill"></div>
-                </div>
-                <div class="progress-info">
-                    <span id="progress-percent">0%</span>
-                    <span id="progress-status">Waiting for upload...</span>
-                </div>
-            </div>
+        <div id="upload-progress" class="upload-progress">
+          <div class="progress-bar">
+            <div id="progress-fill" class="progress-fill"></div>
+          </div>
+          <div class="progress-info">
+            <span id="progress-percent">0%</span>
+            <span id="progress-status">Waiting for upload...</span>
+          </div>
+        </div>
 
-            <div id="success-message" class="upload-success-message">
-                <div class="success-icon">✅</div>
-                <h2>Upload completed!</h2>
-                <p>Your note has been saved and is ready for AI processing.</p>
-                <div class="success-actions">
-                    <button class="btn btn-primary" id="upload-another-btn">Upload Another</button>
-                    <a href="dashboard.html" class="btn btn-secondary">View Dashboard</a>
-                </div>
-            </div>
-        </section>
+        <div id="success-message" class="upload-success-message">
+          <div class="success-icon">✅</div>
+          <h2>Upload completed!</h2>
+          <p>Your note has been saved and is ready for AI processing.</p>
+          <div class="success-actions">
+            <button class="btn btn-primary" id="upload-another-btn">
+              Upload Another
+            </button>
+            <a href="dashboard.html" class="btn btn-secondary"
+              >View Dashboard</a
+            >
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="../src/pages/upload-page.js"></script>
-</body>
+  </body>
 </html>

@@ -10,7 +10,7 @@ import { getNote, getGeneratedContent, saveGeneratedContent } from '../services/
 import { generateSummary, generateQuiz, generateFlashcards } from '../services/aiService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
-import { formatDate } from '../utils/formatting.js';
+import { formatDate, formatSummary } from '../utils/formatting.js';
 
 // Global state
 let currentNote = null;
@@ -209,12 +209,34 @@ async function handleGenerateSummary() {
 
 function displaySummary(summary) {
     const content = document.getElementById('summary-content');
-    
+    const formattedSummary = formatSummary(summary);
+
     content.innerHTML = `
-        <div class="summary-text">
-            ${summary.split('\n').map(para => `<p>${para}</p>`).join('')}
+        <div class="summary-actions">
+            <button id="copy-summary-btn" class="btn btn-secondary">Copy summary</button>
+        </div>
+        <div class="summary-text summary-formatted">
+            ${formattedSummary}
         </div>
     `;
+
+    const copyBtn = document.getElementById('copy-summary-btn');
+    if (copyBtn) {
+        copyBtn.addEventListener('click', () => {
+            copyTextToClipboard(summary);
+        });
+    }
+}
+
+function copyTextToClipboard(text) {
+    if (!navigator.clipboard) {
+        showToast('Clipboard not supported in this browser.', 'warning');
+        return;
+    }
+
+    navigator.clipboard.writeText(text)
+        .then(() => showToast('Summary copied to clipboard!', 'success'))
+        .catch(() => showToast('Unable to copy summary.', 'error'));
 }
 
 // ============================================

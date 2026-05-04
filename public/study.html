@@ -1,67 +1,75 @@
-<!DOCTYPE html>
+<!doctype html>
 <html lang="en">
-<head>
+  <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
     <title>Study Notes - AI Study Assistant</title>
     <link rel="stylesheet" href="../styles.css" />
-</head>
-<body>
+  </head>
+  <body>
     <header class="page-header">
-        <div class="page-header-inner">
-            <div>
-                <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
-                <h1 id="note-title">Study Session</h1>
-                <p id="note-meta">Note details will appear here.</p>
-            </div>
+      <div class="page-header-inner">
+        <div>
+          <a href="dashboard.html" class="btn-secondary">← Back to Dashboard</a>
+          <h1 id="note-title">Study Session</h1>
+          <p id="note-meta">Note details will appear here.</p>
         </div>
+      </div>
     </header>
 
     <main class="page-content study-page">
-        <div class="study-tabs">
-            <button class="tab-btn active" data-tab="summary">Summary</button>
-            <button class="tab-btn" data-tab="quiz">Quiz</button>
-            <button class="tab-btn" data-tab="flashcards">Flashcards</button>
+      <div class="study-tabs">
+        <button class="tab-btn active" data-tab="summary">Summary</button>
+        <button class="tab-btn" data-tab="quiz">Quiz</button>
+        <button class="tab-btn" data-tab="flashcards">Flashcards</button>
+      </div>
+
+      <section id="summary-tab" class="tab-content active">
+        <div class="tab-actions">
+          <button class="btn btn-primary" id="generate-summary-btn">
+            ✨ Generate Summary
+          </button>
         </div>
+        <div id="summary-content" class="tab-panel">
+          <div class="empty-state">
+            <div class="empty-icon">✨</div>
+            <div class="empty-title">Generate a summary for this note.</div>
+          </div>
+        </div>
+      </section>
 
-        <section id="summary-tab" class="tab-content active">
-            <div class="tab-actions">
-                <button class="btn btn-primary" id="generate-summary-btn">✨ Generate Summary</button>
+      <section id="quiz-tab" class="tab-content">
+        <div class="tab-actions">
+          <button class="btn btn-primary" id="generate-quiz-btn">
+            ❓ Generate Quiz
+          </button>
+        </div>
+        <div id="quiz-content" class="tab-panel">
+          <div class="empty-state">
+            <div class="empty-icon">❓</div>
+            <div class="empty-title">
+              Generate quiz questions from this note.
             </div>
-            <div id="summary-content" class="tab-panel">
-                <div class="empty-state">
-                    <div class="empty-icon">✨</div>
-                    <div class="empty-title">Generate a summary for this note.</div>
-                </div>
-            </div>
-        </section>
+          </div>
+        </div>
+      </section>
 
-        <section id="quiz-tab" class="tab-content">
-            <div class="tab-actions">
-                <button class="btn btn-primary" id="generate-quiz-btn">❓ Generate Quiz</button>
-            </div>
-            <div id="quiz-content" class="tab-panel">
-                <div class="empty-state">
-                    <div class="empty-icon">❓</div>
-                    <div class="empty-title">Generate quiz questions from this note.</div>
-                </div>
-            </div>
-        </section>
-
-        <section id="flashcards-tab" class="tab-content">
-            <div class="tab-actions">
-                <button class="btn btn-primary" id="generate-flashcards-btn">🎴 Generate Flashcards</button>
-            </div>
-            <div id="flashcards-content" class="tab-panel">
-                <div class="empty-state">
-                    <div class="empty-icon">🎴</div>
-                    <div class="empty-title">Generate flashcards from this note.</div>
-                </div>
-            </div>
-        </section>
+      <section id="flashcards-tab" class="tab-content">
+        <div class="tab-actions">
+          <button class="btn btn-primary" id="generate-flashcards-btn">
+            🎴 Generate Flashcards
+          </button>
+        </div>
+        <div id="flashcards-content" class="tab-panel">
+          <div class="empty-state">
+            <div class="empty-icon">🎴</div>
+            <div class="empty-title">Generate flashcards from this note.</div>
+          </div>
+        </div>
+      </section>
     </main>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="../src/pages/study-page.js"></script>
-</body>
+  </body>
 </html>

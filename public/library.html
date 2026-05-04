@@ -22,12 +22,58 @@
     </header>
 
     <main class="page-content library-page">
-        <div class="search-bar">
-            <input id="searchInput" type="search" placeholder="Search notes by title or filename..." />
-        </div>
+        <section class="library-topbar">
+            <div>
+                <p class="library-label">Your Notes</p>
+                <h2>Manage your uploaded study materials</h2>
+            </div>
+            <div class="library-controls">
+                <label class="search-group">
+                    <span>Search</span>
+                    <input id="searchInput" type="search" placeholder="Search notes by title or filename..." />
+                </label>
+                <label class="sort-group">
+                    <span>Sort by</span>
+                    <select id="sortSelect">
+                        <option value="latest">Latest upload</option>
+                        <option value="oldest">Oldest upload</option>
+                    </select>
+                </label>
+            </div>
+        </section>
+
+        <section class="library-summary" id="librarySummary">
+            <div class="summary-card">
+                <p class="summary-label">Total notes</p>
+                <strong id="notesCount">0</strong>
+            </div>
+            <div class="summary-card soft">
+                <p class="summary-label">Tip</p>
+                <p>Use the search box to quickly find the note you need.</p>
+            </div>
+        </section>
 
         <section id="notesContainer" class="notes-grid"></section>
     </main>
+
+    <div id="summaryModal" class="modal-overlay hidden" aria-hidden="true">
+        <div class="modal-card" role="dialog" aria-modal="true" aria-labelledby="modalTitle">
+            <header class="modal-header">
+                <div>
+                    <p class="modal-tag">Summary</p>
+                    <h3 id="modalTitle">Note summary</h3>
+                </div>
+                <button class="modal-close" id="closeModal" aria-label="Close summary modal">×</button>
+            </header>
+            <div class="modal-body" id="modalBody">
+                <p>Loading summary…</p>
+            </div>
+            <footer class="modal-footer">
+                <button class="btn-secondary" id="openStudyBtn">Open Study Page</button>
+                <button class="btn-primary" id="closeModalFooter">Close</button>
+            </footer>
+        </div>
+    </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
     <script type="module" src="../src/pages/library-page.js"></script>

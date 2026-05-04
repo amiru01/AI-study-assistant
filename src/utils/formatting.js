@@ -81,6 +81,72 @@ export function truncateText(text, maxLength, suffix = '...') {
 }
 
 /**
+ * Convert AI-generated summary text into structured HTML
+ * @param {string} text - Raw AI-generated summary
+ * @returns {string} HTML markup
+ */
+export function formatSummary(text) {
+    if (!text || typeof text !== 'string') {
+        return '<p>No summary available.</p>';
+    }
+
+    const lines = text
+        .replace(/\r\n/g, '\n')
+        .split('\n')
+        .map(line => line.trim())
+        .filter(line => line.length > 0);
+
+    let html = '';
+    let listOpen = false;
+
+    lines.forEach((line, index) => {
+        const isBullet = /^[\-\*•‣⁃]\s+/.test(line) || /^\d+[\.)]\s+/.test(line);
+        const isHeading = /^#{1,3}\s+/.test(line) || /^[A-Z][A-Za-z0-9\s]{0,80}:$/.test(line);
+
+        if (isHeading) {
+            if (listOpen) {
+                html += '</ul>';
+                listOpen = false;
+            }
+
+            const content = line.replace(/^#{1,3}\s+/, '').replace(/:$/, '');
+            const headingLevel = line.startsWith('##') ? 'h4' : 'h3';
+            html += `<${headingLevel}>${content}</${headingLevel}>`;
+            return;
+        }
+
+        if (isBullet) {
+            if (!listOpen) {
+                html += '<ul class="summary-bullet-list">';
+                listOpen = true;
+            }
+            const item = line.replace(/^[\-\*•‣⁃]\s+/, '').replace(/^\d+[\.)]\s+/, '');
+            html += `<li>${item}</li>`;
+            return;
+        }
+
+        if (listOpen) {
+            html += '</ul>';
+            listOpen = false;
+        }
+
+        if (line.length < 80 && line.endsWith(':')) {
+            const headingText = line.slice(0, -1);
+            html += `<h4>${headingText}</h4>`;
+            return;
+        }
+
+        html += `<p>${line}</p>`;
+    });
+
+    if (listOpen) {
+        html += '</ul>';
+    }
+
+    return html;
+}
+
+/**
  * Format number with commas
  * @param {number} num - Number to format
  * @returns {string} Formatted number
