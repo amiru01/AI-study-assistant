@@ -1,89 +1,71 @@
 /**
  * Upload Page Logic
  *
- * Handles file upload UI and interactions
- * This file contains ONLY UI logic - all business logic is in services
+ * Handles multi-file-type upload UI and interactions.
+ * UI logic only — all business logic lives in services.
+ *
+ * Supported types: PDF, JPG/PNG, TXT, DOC/DOCX
  */
 
 import {
-  getCurrentUser,
-  isAuthenticated,
-  initAuthState,
-} from "../services/supabaseAuthService.js";
-import { uploadFile } from "../services/supabaseStorageService.js";
-import { saveNote } from "../services/supabaseDatabaseService.js";
-import { validateFile } from "../utils/validation.js";
-import { formatFileSize } from "../utils/formatting.js";
-import { showToast } from "../components/toast.js";
+    getCurrentUser,
+    isAuthenticated,
+    initAuthState,
+} from '../services/supabaseAuthService.js';
+import { uploadFile } from '../services/supabaseStorageService.js';
+import { saveNote } from '../services/supabaseDatabaseService.js';
+import { validateFile } from '../utils/validation.js';
+import { formatFileSize } from '../utils/formatting.js';
+import { showToast } from '../components/toast.js';
 
-// Global state
+// ============================================
+// CONSTANTS
+// ============================================
+
+const FILE_ICONS = {
+    'application/pdf': '📄',
+    'image/jpeg': '🖼️',
+    'image/jpg': '🖼️',
+    'image/png': '🖼️',
+    'text/plain': '📝',
+    'application/msword': '📘',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': '📘',
+};
+
+const FILE_TYPE_LABELS = {
+    'application/pdf': 'PDF Document',
+    'image/jpeg': 'JPEG Image',
+    'image/jpg': 'JPEG Image',
+    'image/png': 'PNG Image',
+    'text/plain': 'Text File',
+    'application/msword': 'Word Document',
+    'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word Document',
+};
+
+// ============================================
+// STATE
+// ============================================
+
 let selectedFile = null;
 
 // ============================================
 // INITIALIZATION
 // ============================================
 
-/**
- * Initialize upload page
- */
 export async function initUploadPage() {
-  // Initialize auth state first (loads user from Supabase session)
-  await initAuthState();
+    await initAuthState();
 
-  // Check authentication
-  if (!isAuthenticated()) {
-    window.location.href = "auth-refactored.html";
-    return;
-  }
+    if (!isAuthenticated()) {
+        window.location.href = 'auth-refactored.html';
+        return;
+    }
 
-  // Display user info
-  await displayUserInfo();
+    await displayUserInfo();
+    initDragAndDrop();
+    initFileInput();
+    attachEventListeners();
 
-  // Initialize drag & drop
-  initDragAndDrop();
-
-  // Initialize file input
-  initFileInput();
-
-  // Attach event listeners for buttons
-  attachEventListeners();
-
-  console.log("✅ Upload page initialized");
-}
-
-/**
- * Attach event listeners to buttons
- */
-function attachEventListeners() {
-  // Upload button
-  const uploadBtn = document.getElementById("upload-btn");
-  if (uploadBtn) {
-    uploadBtn.addEventListener("click", startUpload);
-    console.log("✅ Upload button event listener attached");
-  }
-
-  // Cancel button
-  const cancelBtn = document.getElementById("cancel-btn");
-  if (cancelBtn) {
-    cancelBtn.addEventListener("click", cancelUpload);
-    console.log("✅ Cancel button event listener attached");
-  }
-
-  // Go to Dashboard button
-  const dashboardBtn = document.getElementById("goto-dashboard-btn");
-  if (dashboardBtn) {
-    dashboardBtn.addEventListener("click", () => {
-      window.location.href = "dashboard.html";
-    });
-    console.log("✅ Dashboard button event listener attached");
-  }
-
-  // Upload Another button
-  const uploadAnotherBtn = document.getElementById("upload-another-btn");
-  if (uploadAnotherBtn) {
-    uploadAnotherBtn.addEventListener("click", uploadAnother);
-    console.log("✅ Upload Another button event listener attached");
-  }
+    console.log('✅ Upload page initialized');
 }
 
 // ============================================
@@ -91,23 +73,11 @@ function attachEventListeners() {
 // ============================================
 
 async function displayUserInfo() {
-  try {
-    // Get current user (may be async in production)
     const user = getCurrentUser();
+    if (!user) return;
 
-    if (!user) {
-      console.warn("⚠️ No user found");
-      return;
-    }
-
-    const userEmailEl = document.getElementById("user-email");
-    if (userEmailEl) {
-      userEmailEl.textContent = user.displayName || user.email;
-      console.log("✅ User info displayed:", user.email);
-    }
-  } catch (error) {
-    console.error("❌ Error displaying user info:", error);
-  }
+    const el = document.getElementById('user-email');
+    if (el) el.textContent = user.displayName || user.email;
 }
 
 // ============================================
@@ -115,58 +85,33 @@ async function displayUserInfo() {
 // ============================================
 
 function initDragAndDrop() {
-  const uploadZone = document.getElementById("upload-zone");
+    const zone = document.getElementById('upload-zone');
+    if (!zone) return;
 
-  // Prevent default drag behaviors
-  ["dragenter", "dragover", "dragleave", "drop"].forEach((eventName) => {
-    uploadZone.addEventListener(eventName, preventDefaults, false);
-    document.body.addEventListener(eventName, preventDefaults, false);
-  });
+    ['dragenter', 'dragover', 'dragleave', 'drop'].forEach(evt => {
+        zone.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+        document.body.addEventListener(evt, e => { e.preventDefault(); e.stopPropagation(); });
+    });
 
-  // Highlight drop zone when dragging over
-  ["dragenter", "dragover"].forEach((eventName) => {
-    uploadZone.addEventListener(
-      eventName,
-      () => {
-        uploadZone.classList.add("drag-over");
-      },
-      false,
+    ['dragenter', 'dragover'].forEach(evt =>
+        zone.addEventListener(evt, () => zone.classList.add('drag-over'))
     );
-  });
-
-  ["dragleave", "drop"].forEach((eventName) => {
-    uploadZone.addEventListener(
-      eventName,
-      () => {
-        uploadZone.classList.remove("drag-over");
-      },
-      false,
+    ['dragleave', 'drop'].forEach(evt =>
+        zone.addEventListener(evt, () => zone.classList.remove('drag-over'))
     );
-  });
 
-  // Handle dropped files
-  uploadZone.addEventListener("drop", handleDrop, false);
+    zone.addEventListener('drop', e => {
+        const files = e.dataTransfer?.files;
+        if (files?.length) handleFileSelect(files[0]);
+    });
 
-  // Click to upload
-  uploadZone.addEventListener("click", (e) => {
-    if (e.target.tagName !== "BUTTON") {
-      document.getElementById("file-input").click();
-    }
-  });
-}
-
-function preventDefaults(e) {
-  e.preventDefault();
-  e.stopPropagation();
-}
-
-function handleDrop(e) {
-  const dt = e.dataTransfer;
-  const files = dt.files;
-
-  if (files.length > 0) {
-    handleFileSelect(files[0]);
-  }
+    // Only open file picker when clicking the zone background, NOT the button
+    // (the button has its own listener added in attachEventListeners)
+    zone.addEventListener('click', e => {
+        if (e.target.id !== 'browseBtn' && !e.target.closest('#browseBtn')) {
+            document.getElementById('file-input')?.click();
+        }
+    });
 }
 
 // ============================================
@@ -174,215 +119,217 @@ function handleDrop(e) {
 // ============================================
 
 function initFileInput() {
-  const fileInput = document.getElementById("file-input");
+    const input = document.getElementById('file-input');
+    if (!input) return;
 
-  fileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-      handleFileSelect(e.target.files[0]);
-    }
-  });
+    input.addEventListener('change', e => {
+        if (e.target.files?.length) handleFileSelect(e.target.files[0]);
+    });
 }
 
 // ============================================
-// FILE SELECTION
+// FILE SELECTION & VALIDATION
 // ============================================
 
 function handleFileSelect(file) {
-  // Validate file
-  const validation = validateFile(file);
+    // Sanitize filename (strip path separators)
+    const safeName = file.name.replace(/[/\\]/g, '_');
 
-  if (!validation.isValid) {
-    showToast(validation.errors[0], "error");
-    return;
-  }
+    // Run validation
+    const validation = validateFile(file);
+    if (!validation.isValid) {
+        showValidationError(validation.errors[0]);
+        return;
+    }
 
-  // Store selected file
-  selectedFile = file;
+    clearValidationError();
+    selectedFile = file;
+    displayFilePreview(file, safeName);
 
-  // Display file preview
-  displayFilePreview(file);
+    document.getElementById('upload-zone').style.display = 'none';
+    document.getElementById('file-preview').classList.add('show');
+}
 
-  // Hide upload zone, show preview
-  document.getElementById("upload-zone").style.display = "none";
-  document.getElementById("file-preview").classList.add("show");
+function showValidationError(message) {
+    const el = document.getElementById('validation-error');
+    if (el) {
+        el.textContent = message;
+        el.style.display = 'block';
+    }
+    showToast(message, 'error');
+}
+
+function clearValidationError() {
+    const el = document.getElementById('validation-error');
+    if (el) el.style.display = 'none';
 }
 
 // ============================================
 // FILE PREVIEW
 // ============================================
 
-function displayFilePreview(file) {
-  // Get file info
-  const fileName = file.name;
-  const fileSize = formatFileSize(file.size);
-  const fileType = getFileType(file);
-  const fileIcon = getFileIcon(file);
+function displayFilePreview(file, safeName) {
+    const icon = FILE_ICONS[file.type] || '📎';
+    const label = FILE_TYPE_LABELS[file.type] || file.type || 'Unknown';
+    const size = formatFileSize(file.size);
+    const ext = file.name.split('.').pop().toUpperCase();
 
-  // Update UI
-  document.getElementById("file-icon").textContent = fileIcon;
-  document.getElementById("file-name").textContent = fileName;
-  document.getElementById("file-size").textContent = fileSize;
-  document.getElementById("file-type").textContent = fileType;
-  document.getElementById("file-size-meta").textContent = fileSize;
-  document.getElementById("file-status").textContent = "Ready to upload";
+    setEl('file-icon', icon);
+    setEl('file-name', safeName || file.name);
+    setEl('file-size', size);
+    setEl('file-type', label);
+    setEl('file-ext-badge', ext);
+    setEl('file-size-meta', size);
+    setEl('file-status', 'Ready to upload');
+
+    // Show processing hint based on type
+    const hint = getProcessingHint(file.type);
+    setEl('processing-hint', hint);
 }
 
-function getFileType(file) {
-  const extension = file.name.split(".").pop().toUpperCase();
-  return extension;
+function getProcessingHint(mimeType) {
+    if (mimeType === 'application/pdf') return '📄 Text will be extracted using PDF.js';
+    if (mimeType.startsWith('image/')) return '🔍 Text will be extracted using OCR';
+    if (mimeType === 'text/plain') return '📝 Text will be read directly';
+    if (mimeType.includes('word')) return '📘 Text will be extracted using mammoth.js';
+    return '';
 }
 
-function getFileIcon(file) {
-  const type = file.type;
+function setEl(id, value) {
+    const el = document.getElementById(id);
+    if (el) el.textContent = value;
+}
 
-  if (type === "application/pdf") return "📄";
-  if (type.startsWith("image/")) return "🖼️";
-  return "📎";
+// ============================================
+// EVENT LISTENERS
+// ============================================
+
+function attachEventListeners() {
+    // Browse button — stopPropagation so the zone click handler doesn't also fire
+    document.getElementById('browseBtn')?.addEventListener('click', e => {
+        e.stopPropagation();
+        document.getElementById('file-input')?.click();
+    });
+
+    document.getElementById('upload-btn')?.addEventListener('click', startUpload);
+    document.getElementById('cancel-btn')?.addEventListener('click', cancelUpload);
+    document.getElementById('upload-another-btn')?.addEventListener('click', uploadAnother);
+    document.getElementById('goto-dashboard-btn')?.addEventListener('click', () => {
+        window.location.href = 'dashboard.html';
+    });
 }
 
 // ============================================
 // UPLOAD PROCESS
 // ============================================
 
-/**
- * Start file upload
- */
 async function startUpload() {
-  console.log("🚀 Upload button clicked!"); // Debug log
+    if (!selectedFile) {
+        showToast('No file selected', 'error');
+        return;
+    }
 
-  if (!selectedFile) {
-    console.error("❌ No file selected");
-    showToast("No file selected", "error");
-    return;
-  }
+    const uploadBtn = document.getElementById('upload-btn');
+    const progressContainer = document.getElementById('upload-progress');
+    const progressFill = document.getElementById('progress-fill');
+    const progressPercent = document.getElementById('progress-percent');
+    const progressStatus = document.getElementById('progress-status');
 
-  console.log(
-    "📁 Selected file:",
-    selectedFile.name,
-    selectedFile.size,
-    "bytes",
-  );
+    try {
+        uploadBtn.disabled = true;
+        uploadBtn.textContent = 'Uploading…';
+        progressContainer.classList.add('show');
 
-  const uploadBtn = document.getElementById("upload-btn");
-  const progressContainer = document.getElementById("upload-progress");
-  const progressFill = document.getElementById("progress-fill");
-  const progressPercent = document.getElementById("progress-percent");
-  const progressStatus = document.getElementById("progress-status");
+        const result = await uploadFile(selectedFile, 'notes', (pct) => {
+            progressFill.style.width = pct + '%';
+            progressPercent.textContent = pct + '%';
+            progressStatus.textContent =
+                pct < 30 ? 'Uploading file…' :
+                pct < 60 ? 'Extracting text…' :
+                pct < 90 ? 'Processing…' : 'Almost done…';
+        });
 
-  try {
-    // Disable upload button
-    uploadBtn.disabled = true;
-    uploadBtn.textContent = "Uploading...";
+        progressStatus.textContent = 'Saving to database…';
 
-    // Show progress
-    progressContainer.classList.add("show");
-    progressStatus.textContent = "Uploading file...";
+        await saveNote({
+            title: selectedFile.name.replace(/\.[^/.]+$/, ''),
+            fileName: selectedFile.name,
+            fileURL: result.url,
+            filePath: result.path,
+            fileType: result.type,
+            fileSize: result.size,
+            extractedText: result.extractedText || '',
+        });
 
-    console.log("📤 Starting upload...");
+        progressFill.style.width = '100%';
+        progressPercent.textContent = '100%';
+        progressStatus.textContent = 'Upload complete!';
 
-    // Upload file with progress callback
-    const result = await uploadFile(selectedFile, "notes", (progress) => {
-      progressFill.style.width = progress + "%";
-      progressPercent.textContent = progress + "%";
+        setTimeout(() => {
+            document.getElementById('file-preview').classList.remove('show');
+            document.getElementById('success-message').classList.add('show');
+        }, 500);
 
-      if (progress < 30) {
-        progressStatus.textContent = "Uploading file...";
-      } else if (progress < 70) {
-        progressStatus.textContent = "Processing...";
-      } else {
-        progressStatus.textContent = "Almost done...";
-      }
-    });
+        showToast('File uploaded successfully!', 'success');
 
-    console.log("✅ Upload complete:", result);
-
-    // Save note to database
-    progressStatus.textContent = "Saving to database...";
-
-    const noteData = {
-      title: selectedFile.name.replace(/\.[^/.]+$/, ""), // Remove extension
-      fileName: selectedFile.name,
-      fileURL: result.url,
-      filePath: result.path,
-      fileType: result.type,
-      fileSize: result.size,
-      extractedText: result.extractedText || "", // Save extracted text
-    };
-
-    console.log("💾 Saving note to database...");
-    await saveNote(noteData);
-
-    // Success!
-    progressFill.style.width = "100%";
-    progressPercent.textContent = "100%";
-    progressStatus.textContent = "Upload complete!";
-
-    console.log("🎉 Upload successful!");
-
-    // Show success message
-    setTimeout(() => {
-      document.getElementById("file-preview").classList.remove("show");
-      document.getElementById("success-message").classList.add("show");
-    }, 500);
-
-    showToast("File uploaded successfully!", "success");
-  } catch (error) {
-    console.error("❌ Upload error:", error);
-    showToast(error.message || "Upload failed. Please try again.", "error");
-
-    // Reset UI
-    uploadBtn.disabled = false;
-    uploadBtn.textContent = "Upload & Process";
-    progressContainer.classList.remove("show");
-  }
+    } catch (error) {
+        console.error('Upload error:', error);
+        showToast(error.message || 'Upload failed. Please try again.', 'error');
+        uploadBtn.disabled = false;
+        uploadBtn.textContent = 'Upload & Process';
+        progressContainer.classList.remove('show');
+    }
 }
 
 // ============================================
-// CANCEL & RESET
+// RESET HELPERS
 // ============================================
 
-/**
- * Cancel upload
- */
 function cancelUpload() {
-  console.log("❌ Upload cancelled");
-
-  // Reset state
-  selectedFile = null;
-
-  // Reset UI
-  document.getElementById("file-preview").classList.remove("show");
-  document.getElementById("upload-zone").style.display = "block";
-  document.getElementById("upload-progress").classList.remove("show");
-  document.getElementById("file-input").value = "";
-
-  // Reset progress
-  document.getElementById("progress-fill").style.width = "0%";
-  document.getElementById("progress-percent").textContent = "0%";
+    selectedFile = null;
+    document.getElementById('file-preview').classList.remove('show');
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('upload-progress').classList.remove('show');
+    resetProgress();
+    resetUploadButton();
+    clearValidationError();
+    const input = document.getElementById('file-input');
+    if (input) input.value = '';
 }
 
-/**
- * Upload another file
- */
 function uploadAnother() {
-  console.log("🔄 Upload another file");
-
-  // Reset everything
-  selectedFile = null;
-
-  document.getElementById("success-message").classList.remove("show");
-  document.getElementById("upload-zone").style.display = "block";
-  document.getElementById("file-input").value = "";
-  document.getElementById("upload-progress").classList.remove("show");
-
-  // Reset progress
-  document.getElementById("progress-fill").style.width = "0%";
-  document.getElementById("progress-percent").textContent = "0%";
+    selectedFile = null;
+    document.getElementById('success-message').classList.remove('show');
+    document.getElementById('upload-zone').style.display = 'block';
+    document.getElementById('upload-progress').classList.remove('show');
+    resetProgress();
+    resetUploadButton();
+    clearValidationError();
+    const input = document.getElementById('file-input');
+    if (input) input.value = '';
 }
 
-// Auto-initialize if DOM is ready
-if (document.readyState === "loading") {
-  document.addEventListener("DOMContentLoaded", initUploadPage);
+function resetUploadButton() {
+    const btn = document.getElementById('upload-btn');
+    if (btn) {
+        btn.disabled = false;
+        btn.textContent = '⬆️ Upload & Process';
+    }
+}
+
+function resetProgress() {
+    const fill = document.getElementById('progress-fill');
+    const pct = document.getElementById('progress-percent');
+    if (fill) fill.style.width = '0%';
+    if (pct) pct.textContent = '0%';
+}
+
+// ============================================
+// AUTO-INIT
+// ============================================
+
+if (document.readyState === 'loading') {
+    document.addEventListener('DOMContentLoaded', initUploadPage);
 } else {
-  initUploadPage();
+    initUploadPage();
 }

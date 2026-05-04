@@ -61,8 +61,16 @@ export function validatePassword(password) {
 export function validateFile(file, options = {}) {
     const {
         maxSize = 10 * 1024 * 1024, // 10MB default
-        allowedTypes = ['application/pdf', 'image/jpeg', 'image/png'],
-        allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png']
+        allowedTypes = [
+            'application/pdf',
+            'image/jpeg',
+            'image/jpg',
+            'image/png',
+            'text/plain',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        allowedExtensions = ['.pdf', '.jpg', '.jpeg', '.png', '.txt', '.doc', '.docx'],
     } = options;
 
     const errors = [];
@@ -72,26 +80,45 @@ export function validateFile(file, options = {}) {
         return { isValid: false, errors };
     }
 
+    // Reject dangerous / executable types regardless of extension
+    const dangerousTypes = [
+        'application/x-msdownload', 'application/x-executable',
+        'application/x-sh', 'application/x-bat',
+        'text/javascript', 'application/javascript',
+        'text/html', 'application/xhtml+xml',
+    ];
+    if (dangerousTypes.includes(file.type)) {
+        errors.push('This file type is not allowed for security reasons.');
+        return { isValid: false, errors };
+    }
+
+    // Reject dangerous extensions
+    const dangerousExtensions = ['.exe', '.bat', '.sh', '.js', '.html', '.htm', '.php', '.py', '.rb', '.cmd', '.vbs', '.ps1'];
+    const ext = '.' + file.name.split('.').pop().toLowerCase();
+    if (dangerousExtensions.includes(ext)) {
+        errors.push('This file extension is not allowed for security reasons.');
+        return { isValid: false, errors };
+    }
+
     // Check file size
     if (file.size > maxSize) {
-        const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(1);
-        errors.push(`File size exceeds ${maxSizeMB}MB limit`);
+        const maxSizeMB = (maxSize / (1024 * 1024)).toFixed(0);
+        errors.push(`File is too large. Maximum size is ${maxSizeMB}MB.`);
     }
 
-    // Check file type
+    // Check MIME type
     if (!allowedTypes.includes(file.type)) {
-        errors.push('File type not supported');
+        errors.push('Unsupported file type. Allowed: PDF, JPG, PNG, TXT, DOC, DOCX.');
     }
 
-    // Check file extension
-    const extension = '.' + file.name.split('.').pop().toLowerCase();
-    if (!allowedExtensions.includes(extension)) {
-        errors.push('File extension not allowed');
+    // Check extension
+    if (!allowedExtensions.includes(ext)) {
+        errors.push('Unsupported file extension. Allowed: .pdf, .jpg, .png, .txt, .doc, .docx.');
     }
 
     return {
         isValid: errors.length === 0,
-        errors
+        errors,
     };
 }
 

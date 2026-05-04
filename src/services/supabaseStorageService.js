@@ -254,14 +254,24 @@ function validateFile(file) {
         throw new Error(`File size exceeds ${maxSizeMB}MB limit`);
     }
 
-    // Check file type
+    // Check MIME type against expanded allowed list
     if (!API_CONFIG.UPLOAD.allowedTypes.includes(file.type)) {
-        throw new Error('File type not supported. Please upload PDF or image files.');
+        throw new Error(
+            'File type not supported. Allowed types: PDF, JPG, PNG, TXT, DOC, DOCX.'
+        );
     }
 
-    // Check file extension
+    // Check extension
     const extension = '.' + file.name.split('.').pop().toLowerCase();
     if (!API_CONFIG.UPLOAD.allowedExtensions.includes(extension)) {
-        throw new Error('File extension not allowed');
+        throw new Error(
+            'File extension not allowed. Allowed: .pdf, .jpg, .jpeg, .png, .txt, .doc, .docx.'
+        );
+    }
+
+    // Reject dangerous extensions regardless of MIME type
+    const dangerous = ['.exe', '.bat', '.sh', '.js', '.html', '.htm', '.php', '.py', '.cmd', '.vbs', '.ps1'];
+    if (dangerous.includes(extension)) {
+        throw new Error('This file type is not allowed for security reasons.');
     }
 }

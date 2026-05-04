@@ -1,185 +1,230 @@
 /**
  * Text Extraction Service
- * 
- * Handles text extraction from PDFs and images
- * Uses PDF.js for PDFs and OCR.space API for images
+ *
+ * Handles text extraction from all supported file types:
+ *   - PDF       → PDF.js
+ *   - Images    → OCR.space API
+ *   - TXT       → FileReader (direct read)
+ *   - DOC/DOCX  → mammoth.js (loaded from CDN)
  */
 
 import { API_ENDPOINTS, API_KEYS, isApiConfigured } from '../config/api.js';
 
+// ============================================
+// PUBLIC API
+// ============================================
+
 /**
- * Extract text from a file (PDF or Image)
- * @param {File} file - File object to extract text from
- * @returns {Promise<string>} Extracted text
+ * Extract text from any supported file type.
+ * Dispatches to the correct handler based on MIME type.
+ *
+ * @param {File} file
+ * @returns {Promise<string>} Extracted plain text
  */
 export async function extractTextFromFile(file) {
-    try {
-        const fileType = file.type;
+    const type = file.type;
 
-        if (fileType === 'application/pdf') {
-            return await extractTextFromPDF(file);
-        } else if (fileType.startsWith('image/')) {
-            return await extractTextFromImage(file);
-        } else {
-            throw new Error('Unsupported file type. Please upload PDF or image files.');
-        }
-
-    } catch (error) {
-        console.error('Text extraction error:', error);
-        throw new Error(`Failed to extract text: ${error.message}`);
+    if (type === 'application/pdf') {
+        return extractFromPDF(file);
     }
+
+    if (type.startsWith('image/')) {
+        return extractFromImage(file);
+    }
+
+    if (type === 'text/plain') {
+        return extractFromTextFile(file);
+    }
+
+    if (
+        type === 'application/msword' ||
+        type === 'application/vnd.openxmlformats-officedocument.wordprocessingml.document'
+    ) {
+        return extractFromWord(file);
+    }
+
+    throw new Error(
+        `Unsupported file type "${type}". Please upload a PDF, image, TXT, DOC, or DOCX file.`
+    );
 }
 
 /**
- * Extract text from PDF using PDF.js
- * @param {File} file - PDF file
- * @returns {Promise<string>} Extracted text
+ * Returns true when the extracted text is long enough for AI processing.
+ * @param {string} text
+ * @returns {boolean}
  */
-async function extractTextFromPDF(file) {
-    try {
-        // Check if PDF.js is loaded
-        if (typeof pdfjsLib === 'undefined') {
-            console.warn('PDF.js not loaded, using mock text');
-            return getMockPDFText();
-        }
-
-        // Read file as ArrayBuffer
-        const arrayBuffer = await file.arrayBuffer();
-
-        // Load PDF document
-        const loadingTask = pdfjsLib.getDocument({ data: arrayBuffer });
-        const pdf = await loadingTask.promise;
-
-        console.log(`📄 PDF loaded: ${pdf.numPages} pages`);
-
-        let fullText = '';
-
-        // Extract text from each page
-        for (let pageNum = 1; pageNum <= pdf.numPages; pageNum++) {
-            const page = await pdf.getPage(pageNum);
-            const textContent = await page.getTextContent();
-            
-            // Combine text items
-            const pageText = textContent.items
-                .map(item => item.str)
-                .join(' ');
-            
-            fullText += pageText + '\n\n';
-        }
-
-        // Clean up text
-        fullText = cleanExtractedText(fullText);
-
-        if (!fullText || fullText.trim().length < 50) {
-            throw new Error('Could not extract sufficient text from PDF. The PDF might be image-based or encrypted.');
-        }
-
-        console.log(`✅ Extracted ${fullText.length} characters from PDF`);
-        return fullText;
-
-    } catch (error) {
-        console.error('PDF extraction error:', error);
-        
-        // Fallback to mock text in development
-        if (error.message.includes('PDF.js')) {
-            console.warn('Using mock PDF text for development');
-            return getMockPDFText();
-        }
-        
-        throw error;
-    }
+export function isTextSufficient(text) {
+    if (!text || typeof text !== 'string') return false;
+    const trimmed = text.trim();
+    return trimmed.length >= 100 && trimmed.split(/\s+/).length >= 20;
 }
 
 /**
- * Extract text from image using OCR
- * @param {File} file - Image file
- * @returns {Promise<string>} Extracted text
+ * Returns the first `length` characters of text with an ellipsis.
+ * @param {string} text
+ * @param {number} length
+ * @returns {string}
  */
-async function extractTextFromImage(file) {
-    try {
-        // Check if OCR API is configured
-        if (!isApiConfigured('OCR_SPACE')) {
-            console.warn('OCR API not configured, using mock text');
-            return getMockImageText();
-        }
-
-        // Create FormData for OCR API
-        const formData = new FormData();
-        formData.append('file', file);
-        formData.append('apikey', API_KEYS.OCR_SPACE);
-        formData.append('language', 'eng');
-        formData.append('isOverlayRequired', 'false');
-        formData.append('detectOrientation', 'true');
-        formData.append('scale', 'true');
-        formData.append('OCREngine', '2'); // Use OCR Engine 2 for better accuracy
-
-        console.log('🔍 Sending image to OCR API...');
-
-        // Call OCR API
-        const response = await fetch(API_ENDPOINTS.OCR_SPACE, {
-            method: 'POST',
-            body: formData,
-        });
-
-        if (!response.ok) {
-            throw new Error(`OCR API error: ${response.status}`);
-        }
-
-        const result = await response.json();
-
-        // Check for errors
-        if (result.IsErroredOnProcessing) {
-            throw new Error(result.ErrorMessage?.[0] || 'OCR processing failed');
-        }
-
-        // Extract text from result
-        const extractedText = result.ParsedResults?.[0]?.ParsedText || '';
-
-        if (!extractedText || extractedText.trim().length < 20) {
-            throw new Error('Could not extract sufficient text from image. The image might be too blurry or contain no text.');
-        }
-
-        // Clean up text
-        const cleanedText = cleanExtractedText(extractedText);
-
-        console.log(`✅ Extracted ${cleanedText.length} characters from image`);
-        return cleanedText;
-
-    } catch (error) {
-        console.error('Image OCR error:', error);
-        
-        // Fallback to mock text in development
-        if (error.message.includes('OCR API') || error.message.includes('not configured')) {
-            console.warn('Using mock image text for development');
-            return getMockImageText();
-        }
-        
-        throw error;
-    }
+export function getTextPreview(text, length = 200) {
+    if (!text) return '';
+    return text.length <= length ? text : text.substring(0, length) + '...';
 }
 
-/**
- * Clean and normalize extracted text
- * @param {string} text - Raw extracted text
- * @returns {string} Cleaned text
- */
-function cleanExtractedText(text) {
+// ============================================
+// PDF  →  PDF.js
+// ============================================
+
+async function extractFromPDF(file) {
+    if (typeof pdfjsLib === 'undefined') {
+        console.warn('PDF.js not loaded — returning mock text');
+        return MOCK_PDF_TEXT;
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+    const pdf = await pdfjsLib.getDocument({ data: arrayBuffer }).promise;
+
+    console.log(`📄 PDF loaded: ${pdf.numPages} page(s)`);
+
+    let fullText = '';
+    for (let i = 1; i <= pdf.numPages; i++) {
+        const page = await pdf.getPage(i);
+        const content = await page.getTextContent();
+        fullText += content.items.map(item => item.str).join(' ') + '\n\n';
+    }
+
+    fullText = cleanText(fullText);
+
+    if (fullText.trim().length < 50) {
+        throw new Error(
+            'Could not extract enough text from this PDF. It may be image-based or encrypted. Try uploading it as an image instead.'
+        );
+    }
+
+    console.log(`✅ PDF: extracted ${fullText.length} characters`);
+    return fullText;
+}
+
+// ============================================
+// IMAGES  →  OCR.space
+// ============================================
+
+async function extractFromImage(file) {
+    if (!isApiConfigured('OCR_SPACE')) {
+        console.warn('OCR API not configured — returning mock text');
+        return MOCK_IMAGE_TEXT;
+    }
+
+    const formData = new FormData();
+    formData.append('file', file);
+    formData.append('apikey', API_KEYS.OCR_SPACE);
+    formData.append('language', 'eng');
+    formData.append('isOverlayRequired', 'false');
+    formData.append('detectOrientation', 'true');
+    formData.append('scale', 'true');
+    formData.append('OCREngine', '2');
+
+    console.log('🔍 Sending image to OCR API…');
+
+    const response = await fetch(API_ENDPOINTS.OCR_SPACE, {
+        method: 'POST',
+        body: formData,
+    });
+
+    if (!response.ok) {
+        throw new Error(`OCR API returned HTTP ${response.status}`);
+    }
+
+    const result = await response.json();
+
+    if (result.IsErroredOnProcessing) {
+        throw new Error(result.ErrorMessage?.[0] || 'OCR processing failed');
+    }
+
+    const extracted = cleanText(result.ParsedResults?.[0]?.ParsedText || '');
+
+    if (extracted.trim().length < 20) {
+        throw new Error(
+            'Could not extract enough text from this image. Make sure the image is clear and contains readable text.'
+        );
+    }
+
+    console.log(`✅ Image OCR: extracted ${extracted.length} characters`);
+    return extracted;
+}
+
+// ============================================
+// TXT  →  FileReader
+// ============================================
+
+function extractFromTextFile(file) {
+    return new Promise((resolve, reject) => {
+        const reader = new FileReader();
+
+        reader.onload = (e) => {
+            const text = cleanText(e.target.result || '');
+            if (text.trim().length < 10) {
+                reject(new Error('The text file appears to be empty.'));
+            } else {
+                console.log(`✅ TXT: extracted ${text.length} characters`);
+                resolve(text);
+            }
+        };
+
+        reader.onerror = () => reject(new Error('Failed to read the text file.'));
+        reader.readAsText(file, 'UTF-8');
+    });
+}
+
+// ============================================
+// DOC / DOCX  →  mammoth.js (CDN)
+// ============================================
+
+async function extractFromWord(file) {
+    // mammoth is loaded via CDN script tag in the HTML pages
+    if (typeof mammoth === 'undefined') {
+        console.warn('mammoth.js not loaded — returning mock text');
+        return MOCK_WORD_TEXT;
+    }
+
+    const arrayBuffer = await file.arrayBuffer();
+
+    // extractRawValue gives plain text without HTML conversion
+    const result = await mammoth.extractRawValue({ arrayBuffer });
+
+    if (result.messages?.length) {
+        result.messages.forEach(m => console.warn('mammoth:', m.message));
+    }
+
+    const text = cleanText(result.value || '');
+
+    if (text.trim().length < 10) {
+        throw new Error(
+            'Could not extract text from this Word document. The file may be empty or use an unsupported format.'
+        );
+    }
+
+    console.log(`✅ DOCX: extracted ${text.length} characters`);
+    return text;
+}
+
+// ============================================
+// HELPERS
+// ============================================
+
+function cleanText(text) {
     return text
-        // Remove excessive whitespace
-        .replace(/\s+/g, ' ')
-        // Remove excessive newlines
-        .replace(/\n{3,}/g, '\n\n')
-        // Trim
+        .replace(/\r\n/g, '\n')
+        .replace(/\r/g, '\n')
+        .replace(/[ \t]+/g, ' ')       // collapse horizontal whitespace
+        .replace(/\n{3,}/g, '\n\n')    // max two consecutive newlines
         .trim();
 }
 
-/**
- * Get mock PDF text for development/testing
- * @returns {string} Mock text
- */
-function getMockPDFText() {
-    return `
-Introduction to Photosynthesis
+// ============================================
+// MOCK DATA (development / no-API fallback)
+// ============================================
+
+const MOCK_PDF_TEXT = `Introduction to Photosynthesis
 
 Photosynthesis is the fundamental process by which plants, algae, and some bacteria convert light energy into chemical energy stored in glucose molecules. This process is essential for life on Earth as it produces oxygen and forms the base of most food chains.
 
@@ -191,194 +236,60 @@ Photosynthesis occurs primarily in the chloroplasts of plant cells and can be di
 These reactions occur in the thylakoid membranes of chloroplasts and require direct light energy:
 - Light energy is absorbed by chlorophyll and other pigments
 - Water molecules are split (photolysis), releasing oxygen as a byproduct
-- ATP (adenosine triphosphate) and NADPH are produced as energy carriers
-- These energy carriers are used in the next stage
+- ATP and NADPH are produced as energy carriers
 
 2. Light-Independent Reactions (Calvin Cycle)
-These reactions occur in the stroma of chloroplasts and do not directly require light:
+These reactions occur in the stroma of chloroplasts:
 - Carbon dioxide from the atmosphere is fixed into organic molecules
 - ATP and NADPH from the light reactions provide energy
 - Glucose and other sugars are synthesized
-- The cycle regenerates its starting molecule (RuBP)
 
-The Chemical Equation
-
-The overall equation for photosynthesis can be written as:
+The Chemical Equation:
 6CO₂ + 6H₂O + light energy → C₆H₁₂O₆ + 6O₂
 
-This means that six molecules of carbon dioxide and six molecules of water, using light energy, produce one molecule of glucose and six molecules of oxygen.
+Factors Affecting Photosynthesis:
+- Light intensity
+- Carbon dioxide concentration
+- Temperature
+- Water availability`.trim();
 
-Factors Affecting Photosynthesis
-
-Several environmental factors can affect the rate of photosynthesis:
-
-1. Light Intensity
-- Higher light intensity generally increases the rate of photosynthesis
-- However, there is a saturation point beyond which more light does not increase the rate
-- Different plants have different light requirements
-
-2. Carbon Dioxide Concentration
-- Increased CO₂ concentration typically increases photosynthesis rate
-- Plants can only use CO₂ up to a certain concentration
-- Current atmospheric CO₂ levels are often limiting for plant growth
-
-3. Temperature
-- Photosynthesis is controlled by enzymes that work best at optimal temperatures
-- Most plants photosynthesize best between 25-35°C
-- Extreme temperatures can denature enzymes and stop photosynthesis
-
-4. Water Availability
-- Water is a raw material for photosynthesis
-- Lack of water causes stomata to close, reducing CO₂ intake
-- Severe water stress can damage the photosynthetic machinery
-
-Importance of Photosynthesis
-
-Photosynthesis is crucial for several reasons:
-
-1. Oxygen Production
-- Photosynthesis produces virtually all the oxygen in Earth's atmosphere
-- This oxygen is essential for aerobic respiration in most organisms
-
-2. Food Production
-- All food chains begin with photosynthetic organisms (producers)
-- Plants convert solar energy into chemical energy that other organisms can use
-
-3. Carbon Dioxide Removal
-- Photosynthesis removes CO₂ from the atmosphere
-- This helps regulate Earth's climate and reduces greenhouse gases
-
-4. Energy Storage
-- Solar energy is stored in chemical bonds of glucose
-- This stored energy can be released through cellular respiration
-
-Adaptations for Photosynthesis
-
-Plants have evolved various adaptations to maximize photosynthesis:
-
-1. Leaf Structure
-- Large surface area to capture maximum light
-- Thin leaves allow light to penetrate to all cells
-- Stomata allow gas exchange while minimizing water loss
-
-2. Chloroplast Organization
-- Stacked thylakoids (grana) increase surface area for light reactions
-- Stroma provides space for Calvin cycle enzymes
-
-3. Pigment Diversity
-- Chlorophyll a and b absorb different wavelengths of light
-- Accessory pigments (carotenoids) capture additional light energy
-- This allows plants to use a broader spectrum of light
-
-4. Alternative Pathways
-- C4 plants have adapted to hot, dry environments
-- CAM plants open stomata at night to conserve water
-- These adaptations allow photosynthesis in challenging conditions
-
-Conclusion
-
-Photosynthesis is one of the most important biological processes on Earth. It converts solar energy into chemical energy, produces oxygen, and forms the foundation of most ecosystems. Understanding photosynthesis is essential for addressing challenges in agriculture, climate change, and sustainable energy production.
-    `.trim();
-}
-
-/**
- * Get mock image text for development/testing
- * @returns {string} Mock text
- */
-function getMockImageText() {
-    return `
-Cell Biology Notes
+const MOCK_IMAGE_TEXT = `Cell Biology Notes
 
 The Cell: Basic Unit of Life
 
-All living organisms are composed of one or more cells. The cell is the smallest unit that can carry out all the processes of life.
-
 Types of Cells:
-1. Prokaryotic Cells
-   - No nucleus
-   - DNA in nucleoid region
-   - Examples: Bacteria, Archaea
+1. Prokaryotic Cells - No nucleus, DNA in nucleoid region (Bacteria, Archaea)
+2. Eukaryotic Cells - Have nucleus, membrane-bound organelles (Animals, Plants, Fungi)
 
-2. Eukaryotic Cells
-   - Have nucleus
-   - Membrane-bound organelles
-   - Examples: Animals, Plants, Fungi
+Key Organelles:
+- Nucleus: Contains genetic material, controls cell activities
+- Mitochondria: Powerhouse of the cell, produces ATP
+- Endoplasmic Reticulum: Rough ER makes proteins; Smooth ER makes lipids
+- Golgi Apparatus: Modifies and packages proteins
+- Ribosomes: Protein synthesis
+- Cell Membrane: Phospholipid bilayer, selectively permeable`.trim();
 
-Cell Organelles:
+const MOCK_WORD_TEXT = `Study Notes - Chapter 1
 
-Nucleus
-- Contains genetic material (DNA)
-- Controls cell activities
-- Site of DNA replication and transcription
+Introduction
 
-Mitochondria
-- Powerhouse of the cell
-- Produces ATP through cellular respiration
-- Has its own DNA
+This document contains study notes for the course. The following topics are covered:
 
-Endoplasmic Reticulum (ER)
-- Rough ER: Has ribosomes, makes proteins
-- Smooth ER: Makes lipids, detoxifies
+1. Core Concepts
+   - Definition and scope
+   - Historical background
+   - Key terminology
 
-Golgi Apparatus
-- Modifies and packages proteins
-- Sorts molecules for transport
+2. Main Principles
+   - Principle A: Describes the fundamental relationship between variables
+   - Principle B: Explains how systems maintain equilibrium
+   - Principle C: Outlines the process of change over time
 
-Ribosomes
-- Protein synthesis
-- Found free in cytoplasm or on rough ER
+3. Applications
+   - Real-world use cases
+   - Case studies
+   - Problem-solving frameworks
 
-Cell Membrane
-- Phospholipid bilayer
-- Controls what enters and exits cell
-- Selectively permeable
+Summary
 
-Key Concepts:
-- Cells maintain homeostasis
-- Cells reproduce through division
-- Cells respond to their environment
-- Cells require energy to function
-    `.trim();
-}
-
-/**
- * Validate if extracted text is sufficient for AI processing
- * @param {string} text - Extracted text
- * @returns {boolean} True if text is sufficient
- */
-export function isTextSufficient(text) {
-    if (!text || typeof text !== 'string') {
-        return false;
-    }
-
-    const trimmedText = text.trim();
-    
-    // Check minimum length (at least 100 characters)
-    if (trimmedText.length < 100) {
-        return false;
-    }
-
-    // Check if text has actual words (not just symbols)
-    const wordCount = trimmedText.split(/\s+/).length;
-    if (wordCount < 20) {
-        return false;
-    }
-
-    return true;
-}
-
-/**
- * Get text preview (first N characters)
- * @param {string} text - Full text
- * @param {number} length - Preview length
- * @returns {string} Text preview
- */
-export function getTextPreview(text, length = 200) {
-    if (!text) return '';
-    
-    if (text.length <= length) {
-        return text;
-    }
-    
-    return text.substring(0, length) + '...';
-}
+Understanding these core concepts is essential for applying them in practical scenarios. Review the key terms and practice with the provided exercises.`.trim();

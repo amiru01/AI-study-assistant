@@ -34,8 +34,26 @@ export const API_CONFIG = {
     // File upload limits
     UPLOAD: {
         maxFileSize: 10 * 1024 * 1024, // 10MB
-        allowedTypes: ['application/pdf', 'image/jpeg', 'image/png', 'image/jpg'],
-        allowedExtensions: ['.pdf', '.jpg', '.jpeg', '.png'],
+        allowedTypes: [
+            'application/pdf',
+            'image/jpeg',
+            'image/png',
+            'image/jpg',
+            'text/plain',
+            'application/msword',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document',
+        ],
+        allowedExtensions: ['.pdf', '.jpg', '.jpeg', '.png', '.txt', '.doc', '.docx'],
+        // Human-readable label map
+        typeLabels: {
+            'application/pdf': 'PDF Document',
+            'image/jpeg': 'JPEG Image',
+            'image/jpg': 'JPEG Image',
+            'image/png': 'PNG Image',
+            'text/plain': 'Text File',
+            'application/msword': 'Word Document',
+            'application/vnd.openxmlformats-officedocument.wordprocessingml.document': 'Word Document',
+        },
     },
     
     // Request timeouts
