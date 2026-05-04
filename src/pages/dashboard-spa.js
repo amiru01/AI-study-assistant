@@ -459,10 +459,9 @@ function renderSummaries() {
   contentArea.innerHTML = `
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">AI-Generated Summaries</h2>
-                <p class="section-subtitle">Your latest summaries are listed below.</p>
+                <h2 class="section-title">AI-Generated Summaries (${summaries.length})</h2>
             </div>
-            <div class="summary-list">
+            <div class="notes-grid">
                 ${summaries.map((summary) => createGeneratedContentCard(summary)).join("")}
             </div>
         </div>
@@ -497,10 +496,9 @@ function renderQuiz() {
   contentArea.innerHTML = `
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">Practice Quizzes</h2>
-                <p class="section-subtitle">Review quizzes generated from your notes.</p>
+                <h2 class="section-title">Practice Quizzes (${quizzes.length})</h2>
             </div>
-            <div class="summary-list">
+            <div class="notes-grid">
                 ${quizzes.map((item) => createGeneratedContentCard(item)).join("")}
             </div>
         </div>
@@ -537,10 +535,9 @@ function renderFlashcards() {
   contentArea.innerHTML = `
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">Study Flashcards</h2>
-                <p class="section-subtitle">Open the latest flashcard sets created from your notes.</p>
+                <h2 class="section-title">Study Flashcards (${flashcards.length})</h2>
             </div>
-            <div class="summary-list">
+            <div class="notes-grid">
                 ${flashcards.map((item) => createGeneratedContentCard(item)).join("")}
             </div>
         </div>
@@ -572,18 +569,23 @@ function initSearch() {
 }
 
 function createGeneratedContentCard(item) {
+  const icon = item.type === "summary" ? "✨" : item.type === "quiz" ? "❓" : "🎴";
+  const label = item.type === "summary" ? "Summary" : item.type === "quiz" ? "Quiz" : "Flashcards";
+  const preview = typeof item.content === "string" ? item.content.slice(0, 160) : JSON.stringify(item.content).slice(0, 160);
+  const date = formatDate(item.createdAt, "relative");
+  
   return `
-        <div class="generated-card">
-            <div class="generated-card-header">
-                <div class="generated-card-icon">${item.type === "summary" ? "✨" : item.type === "quiz" ? "❓" : "🎴"}</div>
-                <div>
-                    <h3>${item.type === "summary" ? "Summary" : item.type === "quiz" ? "Quiz" : "Flashcards"} for note</h3>
-                    <p>${new Date(item.createdAt).toLocaleString()}</p>
+        <div class="note-card" style="cursor: default;">
+            <div class="note-header">
+                <div class="note-icon">${icon}</div>
+                <div class="note-info">
+                    <div class="note-title">${label} for note</div>
+                    <div class="note-meta">${date}</div>
                 </div>
             </div>
-            <p class="generated-card-preview">${typeof item.content === "string" ? item.content.slice(0, 160) : JSON.stringify(item.content).slice(0, 160)}...</p>
-            <div class="generated-card-actions">
-                <button class="btn btn-secondary" onclick="window.dashboardSPA.viewNote('${item.noteId}', '${item.type === "flashcards" ? "flashcards" : item.type === "quiz" ? "quiz" : "summary"}')">Open Study</button>
+            <p style="color: #718096; font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">${preview}...</p>
+            <div class="note-actions">
+                <button class="btn btn-primary" style="flex: 1;" onclick="window.dashboardSPA.viewNote('${item.noteId}', '${item.type === "flashcards" ? "flashcards" : item.type === "quiz" ? "quiz" : "summary"}')">Open Study</button>
             </div>
         </div>
     `;
