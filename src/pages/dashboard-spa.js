@@ -146,7 +146,6 @@ function loadView(view) {
   const titles = {
     dashboard: "Dashboard",
     notes: "My Notes",
-    upload: "Upload Notes",
     summaries: "Summaries",
     quiz: "Quiz",
     flashcards: "Flashcards",
@@ -165,9 +164,6 @@ function loadView(view) {
         break;
       case "notes":
         renderNotes();
-        break;
-      case "upload":
-        renderUpload();
         break;
       case "summaries":
         renderSummaries();
@@ -239,7 +235,7 @@ function renderDashboard() {
                 <h2 class="section-title">Quick Actions</h2>
             </div>
             <div class="stats-grid">
-                <div class="stat-card" style="cursor: pointer;" onclick="window.dashboardSPA.loadView('upload')">
+                <div class="stat-card" style="cursor: pointer;" onclick="window.location.href='upload.html'">
                     <div class="stat-icon blue">📤</div>
                     <div class="stat-label" style="margin-top: 1rem;">Upload New Note</div>
                 </div>
@@ -265,7 +261,7 @@ function renderRecentNotes() {
                 <div class="empty-icon">📚</div>
                 <div class="empty-title">No notes yet</div>
                 <div class="empty-text">Upload your first note to get started</div>
-                <button class="btn btn-primary" onclick="window.dashboardSPA.loadView('upload')">Upload Note</button>
+                <a href="upload.html" class="btn btn-primary">Upload Note</a>
             </div>
         `;
   }
@@ -281,18 +277,22 @@ function renderRecentNotes() {
 // NOTES VIEW
 // ============================================
 
-function renderNotes(filteredNotes = notesData) {
+function renderNotes(filteredNotes = notesData, searchQuery = "") {
   const contentArea = document.getElementById("contentArea");
   const notes = filteredNotes;
+  const isSearching = searchQuery.trim().length > 0;
 
   if (notes.length === 0) {
     contentArea.innerHTML = `
             <div class="section">
                 <div class="empty-state">
-                    <div class="empty-icon">📚</div>
-                    <div class="empty-title">No notes yet</div>
-                    <div class="empty-text">Upload your first note to get started with AI-powered studying</div>
-                    <button class="btn btn-primary" onclick="window.dashboardSPA.loadView('upload')">Upload Note</button>
+                    <div class="empty-icon">${isSearching ? "🔍" : "📚"}</div>
+                    <div class="empty-title">${isSearching ? `No notes match "${searchQuery}"` : "No notes yet"}</div>
+                    <div class="empty-text">${isSearching ? "Try a different keyword or clear the search." : "Upload your first note to get started with AI-powered studying"}</div>
+                    ${isSearching
+                      ? `<button class="btn btn-secondary" onclick="document.getElementById('searchInput').value=''; document.getElementById('searchClear').style.display='none'; window.dashboardSPA.loadView('notes')">Clear Search</button>`
+                      : `<button class="btn btn-primary" onclick="window.location.href='upload.html'">Upload Note</button>`
+                    }
                 </div>
             </div>
         `;
@@ -302,8 +302,8 @@ function renderNotes(filteredNotes = notesData) {
   contentArea.innerHTML = `
         <div class="section">
             <div class="section-header">
-                <h2 class="section-title">All Notes (${notes.length})</h2>
-                <button class="btn btn-primary" onclick="window.dashboardSPA.loadView('upload')">Upload New</button>
+                <h2 class="section-title">${isSearching ? `Results for "${searchQuery}" (${notes.length})` : `All Notes (${notes.length})`}</h2>
+                <a href="upload.html" class="btn btn-primary">Upload New</a>
             </div>
             <div class="notes-grid">
                 ${notes.map((note) => createNoteCard(note)).join("")}
@@ -311,7 +311,6 @@ function renderNotes(filteredNotes = notesData) {
         </div>
     `;
 
-  // Attach event listeners
   attachNoteCardListeners();
 }
 
@@ -407,79 +406,6 @@ function attachNoteCardListeners() {
 
 function viewNote(noteId, tab) {
   window.location.href = `study.html?noteId=${noteId}&tab=${tab}`;
-}
-
-// ============================================
-// UPLOAD VIEW
-// ============================================
-
-function renderUpload() {
-  const contentArea = document.getElementById("contentArea");
-
-  contentArea.innerHTML = `
-        <div class="section">
-            <div class="section-header">
-                <h2 class="section-title">Upload Notes</h2>
-            </div>
-            <div class="upload-area" id="uploadArea">
-                <div class="upload-icon">📤</div>
-                <h3 style="margin-bottom: 0.5rem;">Drag & Drop your files here</h3>
-                <p style="color: #718096; margin-bottom: 1rem;">or click to browse</p>
-                <button class="btn btn-primary" id="browseBtn">Browse Files</button>
-                <p style="color: #a0aec0; font-size: 0.875rem; margin-top: 1rem;">
-                    Supported: PDF, JPG, PNG (Max 10MB)
-                </p>
-            </div>
-            <input type="file" id="fileInput" accept=".pdf,.jpg,.jpeg,.png" style="display: none;">
-        </div>
-    `;
-
-  // Initialize upload functionality
-  initUploadArea();
-}
-
-function initUploadArea() {
-  const uploadArea = document.getElementById("uploadArea");
-  const fileInput = document.getElementById("fileInput");
-  const browseBtn = document.getElementById("browseBtn");
-
-  // Click to browse
-  uploadArea.addEventListener("click", () => fileInput.click());
-  browseBtn.addEventListener("click", (e) => {
-    e.stopPropagation();
-    fileInput.click();
-  });
-
-  // File selected
-  fileInput.addEventListener("change", (e) => {
-    if (e.target.files.length > 0) {
-      handleFileUpload(e.target.files[0]);
-    }
-  });
-
-  // Drag and drop
-  uploadArea.addEventListener("dragover", (e) => {
-    e.preventDefault();
-    uploadArea.classList.add("dragover");
-  });
-
-  uploadArea.addEventListener("dragleave", () => {
-    uploadArea.classList.remove("dragover");
-  });
-
-  uploadArea.addEventListener("drop", (e) => {
-    e.preventDefault();
-    uploadArea.classList.remove("dragover");
-
-    if (e.dataTransfer.files.length > 0) {
-      handleFileUpload(e.dataTransfer.files[0]);
-    }
-  });
-}
-
-async function handleFileUpload(file) {
-  // Redirect to upload page for full functionality
-  window.location.href = "upload.html";
 }
 
 // ============================================
@@ -603,22 +529,48 @@ function renderFlashcards() {
 
 function initSearch() {
   const searchInput = document.getElementById("searchInput");
+  const searchClear = document.getElementById("searchClear");
   if (!searchInput) return;
 
   searchInput.addEventListener("input", () => {
-    if (currentView !== "notes") {
-      return;
+    const query = searchInput.value.trim();
+
+    // Show/hide clear button
+    if (searchClear) {
+      searchClear.style.display = query.length > 0 ? "block" : "none";
     }
 
-    const query = searchInput.value.trim().toLowerCase();
+    // Always switch to notes view when searching
+    if (currentView !== "notes") {
+      currentView = "notes";
+      document.getElementById("pageTitle").textContent = "My Notes";
+
+      // Update sidebar active state
+      document.querySelectorAll(".nav-item").forEach((nav) => {
+        nav.classList.toggle("active", nav.dataset.view === "notes");
+      });
+    }
+
+    const lower = query.toLowerCase();
     const filtered = notesData.filter((note) => {
-      const title = note.title?.toLowerCase() || "";
-      const fileName = note.fileName?.toLowerCase() || "";
-      return title.includes(query) || fileName.includes(query);
+      return (
+        (note.title?.toLowerCase() || "").includes(lower) ||
+        (note.fileName?.toLowerCase() || "").includes(lower)
+      );
     });
 
-    renderNotes(filtered);
+    renderNotes(filtered, query);
   });
+
+  // Clear button
+  if (searchClear) {
+    searchClear.addEventListener("click", () => {
+      searchInput.value = "";
+      searchClear.style.display = "none";
+      searchInput.focus();
+      if (currentView === "notes") renderNotes(notesData);
+    });
+  }
 }
 
 function createGeneratedContentCard(item) {
