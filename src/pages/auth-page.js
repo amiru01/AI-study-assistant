@@ -147,7 +147,7 @@ function initLoginForm() {
 
             // Redirect
             setTimeout(() => {
-                window.location.href = 'dashboard-refactored.html';
+                window.location.href = 'dashboard.html';
             }, 1500);
 
         } catch (error) {
@@ -225,7 +225,7 @@ function initRegisterForm() {
 
             // Redirect
             setTimeout(() => {
-                window.location.href = 'dashboard-refactored.html';
+                window.location.href = 'dashboard.html';
             }, 1500);
 
         } catch (error) {

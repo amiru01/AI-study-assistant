@@ -69,7 +69,7 @@ function attachEventListeners() {
     const dashboardBtn = document.getElementById('goto-dashboard-btn');
     if (dashboardBtn) {
         dashboardBtn.addEventListener('click', () => {
-            window.location.href = 'dashboard-refactored.html';
+            window.location.href = 'dashboard.html';
         });
         console.log('✅ Dashboard button event listener attached');
     }

@@ -392,7 +392,20 @@ export async function getGeneratedContent(noteId, contentType) {
 
         // Development mode
         if (!isSupabaseReady()) {
-            return null;
+            const storageKey = `mock_${contentType}_${noteId}`;
+            const storedValue = localStorage.getItem(storageKey);
+            if (!storedValue) {
+                return null;
+            }
+
+            return {
+                id: `${contentType}-${noteId}`,
+                noteId,
+                userId: user.uid,
+                type: contentType,
+                content: JSON.parse(storedValue),
+                createdAt: new Date().toISOString(),
+            };
         }
 
         // Production mode
@@ -423,6 +436,68 @@ export async function getGeneratedContent(noteId, contentType) {
     } catch (error) {
         console.error('Get content error:', error);
         return null;
+    }
+}
+
+/**
+ * Get all generated content for current user
+ * @returns {Promise<Array>} Array of generated content objects
+ */
+export async function getAllGeneratedContent() {
+    try {
+        const supabase = getSupabase();
+        const user = getCurrentUser();
+
+        if (!user) {
+            throw new Error('User not authenticated');
+        }
+
+        // Development mode
+        if (!isSupabaseReady()) {
+            const results = [];
+
+            for (const key of Object.keys(localStorage)) {
+                const match = key.match(/^mock_(summary|quiz|flashcards)_(.+)$/);
+                if (!match) continue;
+
+                const [, type, noteId] = match;
+                try {
+                    results.push({
+                        id: `${type}-${noteId}`,
+                        noteId,
+                        userId: user.uid,
+                        type,
+                        content: JSON.parse(localStorage.getItem(key)),
+                        createdAt: new Date().toISOString(),
+                    });
+                } catch (err) {
+                    console.warn('Failed to parse mock generated content:', err);
+                }
+            }
+
+            return results;
+        }
+
+        const { data, error } = await supabase
+            .from('generated_content')
+            .select('*')
+            .eq('user_id', user.uid)
+            .order('created_at', { ascending: false });
+
+        if (error) throw error;
+
+        return data.map(item => ({
+            id: item.id,
+            noteId: item.note_id,
+            userId: item.user_id,
+            type: item.type,
+            content: item.content,
+            createdAt: item.created_at,
+        }));
+
+    } catch (error) {
+        console.error('Get all generated content error:', error);
+        throw new Error('Failed to retrieve generated content');
     }
 }
 

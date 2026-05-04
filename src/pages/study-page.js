@@ -15,6 +15,7 @@ import { formatDate } from '../utils/formatting.js';
 // Global state
 let currentNote = null;
 let currentNoteId = null;
+let currentTab = 'summary';
 
 // ============================================
 // INITIALIZATION
@@ -40,7 +41,7 @@ export async function initStudyPage() {
     if (!currentNoteId) {
         showToast('No note selected', 'error');
         setTimeout(() => {
-            window.location.href = 'dashboard-refactored.html';
+            window.location.href = 'dashboard.html';
         }, 2000);
         return;
     }
@@ -82,7 +83,7 @@ async function loadNote() {
         hideLoader();
         
         setTimeout(() => {
-            window.location.href = 'dashboard-refactored.html';
+            window.location.href = 'dashboard.html';
         }, 2000);
     }
 }
