@@ -13,7 +13,9 @@ import {
   getNotes,
   getGeneratedContent,
   getAllGeneratedContent,
+  deleteNote,
 } from "../services/supabaseDatabaseService.js";
+import { deleteFile } from "../services/supabaseStorageService.js";
 import { showToast } from "../components/toast.js";
 import { formatDate } from "../utils/formatting.js";
 
@@ -324,6 +326,13 @@ function createNoteCard(note) {
                     <div class="note-title">${note.title || "Untitled Note"}</div>
                     <div class="note-meta">${note.fileName || "No filename"} • ${date}</div>
                 </div>
+                <button
+                    onclick="event.stopPropagation(); window.dashboardSPA.deleteNote('${note.id}', '${note.fileURL || ''}')"
+                    title="Delete note"
+                    style="background:transparent; border:1px solid #fed7d7; color:#e53e3e; border-radius:6px; padding:0.35rem 0.5rem; cursor:pointer; font-size:1rem; transition:all 0.2s; flex-shrink:0;"
+                    onmouseover="this.style.background='#fff5f5'"
+                    onmouseout="this.style.background='transparent'"
+                >🗑️</button>
             </div>
             <div class="note-actions">
                 <button class="note-action-btn" onclick="window.dashboardSPA.viewNote('${note.id}', 'summary')">
@@ -338,6 +347,50 @@ function createNoteCard(note) {
             </div>
         </div>
     `;
+}
+
+async function handleDeleteNote(noteId, filePath) {
+  const confirmed = confirm(
+    "Are you sure you want to delete this note? This will also remove all generated summaries, quizzes, and flashcards for it."
+  );
+  if (!confirmed) return;
+
+  try {
+    showToast("Deleting note...", "info");
+
+    // Delete the file from storage if we have a URL/path
+    if (filePath) {
+      try {
+        const storagePath = filePath.includes("/storage/v1/object/public/notes/")
+          ? filePath.split("/storage/v1/object/public/notes/")[1]
+          : filePath;
+        await deleteFile(storagePath);
+      } catch (storageError) {
+        console.warn("Storage file deletion failed (may already be gone):", storageError);
+      }
+    }
+
+    // Delete the note record from the database
+    await deleteNote(noteId);
+
+    // Update local state
+    notesData = notesData.filter((n) => n.id !== noteId);
+    statsData.totalNotes = notesData.length;
+
+    // Also remove associated generated content from local state
+    generatedContentData = generatedContentData.filter((c) => c.noteId !== noteId);
+    statsData.totalSummaries = generatedContentData.filter((c) => c.type === "summary").length;
+    statsData.totalQuizzes = generatedContentData.filter((c) => c.type === "quiz").length;
+    statsData.totalFlashcards = generatedContentData.filter((c) => c.type === "flashcards").length;
+
+    showToast("Note deleted successfully", "success");
+
+    // Re-render the current view
+    loadView(currentView);
+  } catch (error) {
+    console.error("Delete note error:", error);
+    showToast("Failed to delete note. Please try again.", "error");
+  }
 }
 
 function attachNoteCardListeners() {
@@ -642,6 +695,7 @@ function initLogout() {
 window.dashboardSPA = {
   loadView,
   viewNote,
+  deleteNote: handleDeleteNote,
 };
 
 // ============================================

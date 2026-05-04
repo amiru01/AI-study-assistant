@@ -1,5 +1,6 @@
 ﻿import { getCurrentUser, isAuthenticated, initAuthState, logoutUser } from '../services/supabaseAuthService.js';
-import { getNotes, getGeneratedContent } from '../services/supabaseDatabaseService.js';
+import { getNotes, getGeneratedContent, deleteNote } from '../services/supabaseDatabaseService.js';
+import { deleteFile } from '../services/supabaseStorageService.js';
 import { showToast } from '../components/toast.js';
 import { formatDate, formatFileSize, formatSummary } from '../utils/formatting.js';
 
@@ -99,7 +100,7 @@ function createNoteCard(note) {
         <article class="note-card" data-note-id="${note.id}">
             <header>
                 <div class="note-card-icon">📄</div>
-                <div>
+                <div style="flex:1;">
                     <h3>${note.title || 'Untitled Note'}</h3>
                     <p class="note-meta">${note.fileName || 'No filename'} • ${relativeDate}</p>
                     <div class="note-badges">
@@ -107,6 +108,7 @@ function createNoteCard(note) {
                         <span class="note-badge">${relativeDate}</span>
                     </div>
                 </div>
+                <button class="note-action-btn btn btn-delete" data-note-id="${note.id}" data-file-path="${note.fileURL || ''}" data-action="delete" title="Delete note" style="flex:0; padding: 0.4rem 0.6rem; font-size: 1rem;">🗑️</button>
             </header>
             <main>
                 <p class="note-preview">Ready to generate summaries, quizzes, and flashcards from this note.</p>
@@ -117,6 +119,40 @@ function createNoteCard(note) {
             </footer>
         </article>
     `;
+}
+
+async function handleDeleteNote(noteId, filePath) {
+    const confirmed = confirm('Are you sure you want to delete this note? This will also remove all generated summaries, quizzes, and flashcards for it.');
+    if (!confirmed) return;
+
+    try {
+        showToast('Deleting note...', 'info');
+
+        // Delete the file from storage if we have a path
+        if (filePath) {
+            try {
+                // Extract the storage path from the full URL if needed
+                const storagePath = filePath.includes('/storage/v1/object/public/notes/')
+                    ? filePath.split('/storage/v1/object/public/notes/')[1]
+                    : filePath;
+                await deleteFile(storagePath);
+            } catch (storageError) {
+                // Log but don't block — the DB record should still be removed
+                console.warn('Storage file deletion failed (may already be gone):', storageError);
+            }
+        }
+
+        // Delete the note record (cascades to generated_content via DB foreign key)
+        await deleteNote(noteId);
+
+        // Remove from local state and re-render
+        notesData = notesData.filter(n => n.id !== noteId);
+        renderNotes(notesData);
+        showToast('Note deleted successfully', 'success');
+    } catch (error) {
+        console.error('Delete note error:', error);
+        showToast('Failed to delete note. Please try again.', 'error');
+    }
 }
 
 function attachNoteListeners() {
@@ -132,6 +168,12 @@ function attachNoteListeners() {
 
             if (action === 'open') {
                 window.location.href = `study.html?noteId=${noteId}`;
+                return;
+            }
+
+            if (action === 'delete') {
+                const filePath = button.dataset.filePath || '';
+                await handleDeleteNote(noteId, filePath);
                 return;
             }
 
