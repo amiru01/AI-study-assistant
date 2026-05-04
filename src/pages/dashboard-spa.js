@@ -189,7 +189,7 @@ function renderDashboard() {
 
   contentArea.innerHTML = `
         <div class="stats-grid">
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="window.dashboardSPA.loadView('notes')" title="View all notes">
                 <div class="stat-header">
                     <div class="stat-icon blue">📚</div>
                 </div>
@@ -197,7 +197,7 @@ function renderDashboard() {
                 <div class="stat-label">Total Notes</div>
             </div>
             
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="window.dashboardSPA.loadView('summaries')" title="View summaries">
                 <div class="stat-header">
                     <div class="stat-icon purple">✨</div>
                 </div>
@@ -205,7 +205,7 @@ function renderDashboard() {
                 <div class="stat-label">Summaries Generated</div>
             </div>
             
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="window.dashboardSPA.loadView('quiz')" title="View quizzes">
                 <div class="stat-header">
                     <div class="stat-icon green">❓</div>
                 </div>
@@ -213,7 +213,7 @@ function renderDashboard() {
                 <div class="stat-label">Quizzes Taken</div>
             </div>
             
-            <div class="stat-card">
+            <div class="stat-card" style="cursor:pointer;" onclick="window.dashboardSPA.loadView('flashcards')" title="View flashcards">
                 <div class="stat-header">
                     <div class="stat-icon orange">🎴</div>
                 </div>
