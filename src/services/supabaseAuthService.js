@@ -263,3 +263,4 @@ export function onAuthStateChanged(callback) {
 
     return () => subscription.unsubscribe();
 }
+

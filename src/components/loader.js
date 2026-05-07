@@ -171,3 +171,4 @@ if (!document.getElementById('loader-styles')) {
     `;
     document.head.appendChild(style);
 }
+

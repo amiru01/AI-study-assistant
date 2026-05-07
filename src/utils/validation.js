@@ -184,3 +184,4 @@ export function validatePasswordMatch(password, confirmPassword) {
         error: isValid ? null : 'Passwords do not match'
     };
 }
+

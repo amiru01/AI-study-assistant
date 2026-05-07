@@ -8,13 +8,11 @@
 # firebase-config.js
 
 # ============================================
-# NODE MODULES (if using npm/yarn)
+# NODE / VITE
 # ============================================
 node_modules/
-npm-debug.log
-yarn-error.log
-package-lock.json
-yarn.lock
+dist/
+.vite/
 
 # ============================================
 # ENVIRONMENT FILES
@@ -24,6 +22,7 @@ yarn.lock
 .env.development
 .env.production
 .env.test
+src/config/env-config.js
 
 # ============================================
 # IDE / EDITOR FILES

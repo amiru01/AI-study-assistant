@@ -299,3 +299,4 @@ function handleStorageError(error) {
     const message = errorMessages[error.code] || error.message || 'Storage operation failed';
     return new Error(message);
 }
+

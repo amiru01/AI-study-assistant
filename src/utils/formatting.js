@@ -200,3 +200,4 @@ export function getInitials(name) {
 export function formatPercentage(value, decimals = 0) {
     return value.toFixed(decimals) + '%';
 }
+

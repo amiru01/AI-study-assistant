@@ -6,8 +6,9 @@
  */
 
 import { getCurrentUser, isAuthenticated, initAuthState } from '../services/supabaseAuthService.js';
-import { getNote, getGeneratedContent, saveGeneratedContent } from '../services/supabaseDatabaseService.js';
+import { getNote, getGeneratedContent, saveGeneratedContent, updateNote } from '../services/supabaseDatabaseService.js';
 import { generateSummary, generateQuiz, generateFlashcards } from '../services/aiService.js';
+import { extractTextFromFile } from '../services/textExtractionService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
 import { formatDate, formatSummary } from '../utils/formatting.js';
@@ -16,6 +17,11 @@ import { formatDate, formatSummary } from '../utils/formatting.js';
 let currentNote = null;
 let currentNoteId = null;
 let currentTab = 'summary';
+let currentSpeechUtterance = null;
+let isSpeechPlaying = false;
+let isSpeechPaused = false;
+let speechCanceled = false;
+let currentSummaryText = '';
 
 // ============================================
 // INITIALIZATION
@@ -30,7 +36,7 @@ export async function initStudyPage() {
     
     // Check authentication
     if (!isAuthenticated()) {
-        window.location.href = 'auth-refactored.html';
+        window.location.href = 'auth.html';
         return;
     }
 
@@ -107,6 +113,9 @@ function initTabs() {
         button.addEventListener('click', () => {
             const targetTab = button.getAttribute('data-tab');
 
+            // Stop any active speech when changing tabs
+            stopSpeech();
+
             // Update active states
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
@@ -122,9 +131,27 @@ function initTabs() {
 // ============================================
 
 function initGenerateButtons() {
-    document.getElementById('generate-summary-btn').addEventListener('click', handleGenerateSummary);
-    document.getElementById('generate-quiz-btn').addEventListener('click', handleGenerateQuiz);
-    document.getElementById('generate-flashcards-btn').addEventListener('click', handleGenerateFlashcards);
+    const summaryButton = document.getElementById('generate-summary-btn');
+    const quizButton = document.getElementById('generate-quiz-btn');
+    const flashcardsButton = document.getElementById('generate-flashcards-btn');
+
+    if (summaryButton) {
+        summaryButton.addEventListener('click', handleGenerateSummary);
+    } else {
+        console.warn('Study page: Generate Summary button not found');
+    }
+
+    if (quizButton) {
+        quizButton.addEventListener('click', handleGenerateQuiz);
+    } else {
+        console.warn('Study page: Generate Quiz button not found');
+    }
+
+    if (flashcardsButton) {
+        flashcardsButton.addEventListener('click', handleGenerateFlashcards);
+    } else {
+        console.warn('Study page: Generate Flashcards button not found');
+    }
 }
 
 // ============================================
@@ -210,10 +237,12 @@ async function handleGenerateSummary() {
 function displaySummary(summary) {
     const content = document.getElementById('summary-content');
     const formattedSummary = formatSummary(summary);
+    currentSummaryText = summary || '';
 
     content.innerHTML = `
         <div class="summary-actions">
-            <button id="copy-summary-btn" class="btn btn-secondary">Copy summary</button>
+            <button id="copy-summary-btn" class="btn btn-secondary">Copy</button>
+            <button id="play-summary-btn" class="btn btn-secondary">🔊 Voice explanation</button>
         </div>
         <div class="summary-text summary-formatted">
             ${formattedSummary}
@@ -223,20 +252,125 @@ function displaySummary(summary) {
     const copyBtn = document.getElementById('copy-summary-btn');
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            copyTextToClipboard(summary);
+            copyTextToClipboard(currentSummaryText);
+        });
+    }
+
+    const playBtn = document.getElementById('play-summary-btn');
+    if (playBtn) {
+        playBtn.addEventListener('click', () => {
+            handleVoiceToggle(summary);
         });
     }
 }
 
 function copyTextToClipboard(text) {
-    if (!navigator.clipboard) {
-        showToast('Clipboard not supported in this browser.', 'warning');
+    const summaryText = text || '';
+    if (!summaryText.trim()) {
+        showToast('Nothing to copy yet. Generate the summary first.', 'warning');
         return;
     }
 
-    navigator.clipboard.writeText(text)
-        .then(() => showToast('Summary copied to clipboard!', 'success'))
-        .catch(() => showToast('Unable to copy summary.', 'error'));
+    if (navigator.clipboard && navigator.clipboard.writeText) {
+        navigator.clipboard.writeText(summaryText)
+            .then(() => showToast('Summary copied to clipboard!', 'success'))
+            .catch(() => showToast('Unable to copy summary.', 'error'));
+        return;
+    }
+
+    const textarea = document.createElement('textarea');
+    textarea.value = summaryText;
+    textarea.style.position = 'fixed';
+    textarea.style.opacity = '0';
+    textarea.style.pointerEvents = 'none';
+    document.body.appendChild(textarea);
+    textarea.select();
+
+    try {
+        const successful = document.execCommand('copy');
+        showToast(successful ? 'Summary copied to clipboard!' : 'Unable to copy summary.', successful ? 'success' : 'error');
+    } catch (error) {
+        showToast('Unable to copy summary.', 'error');
+    }
+
+    document.body.removeChild(textarea);
+}
+
+function handleVoiceToggle(text) {
+    if (!('speechSynthesis' in window)) {
+        showToast('Voice explanation is not supported in this browser.', 'warning');
+        return;
+    }
+
+    const synthesis = window.speechSynthesis;
+
+    if (synthesis.paused && currentSpeechUtterance) {
+        synthesis.resume();
+        isSpeechPlaying = true;
+        isSpeechPaused = false;
+        updateVoiceButton();
+        return;
+    }
+
+    if (synthesis.speaking && !synthesis.paused) {
+        synthesis.pause();
+        isSpeechPlaying = false;
+        isSpeechPaused = true;
+        updateVoiceButton();
+        return;
+    }
+
+    stopSpeech();
+    speechCanceled = false;
+
+    currentSpeechUtterance = new SpeechSynthesisUtterance(text);
+    currentSpeechUtterance.lang = 'en-US';
+    currentSpeechUtterance.rate = 1;
+    currentSpeechUtterance.pitch = 1;
+
+    currentSpeechUtterance.onend = () => {
+        isSpeechPlaying = false;
+        isSpeechPaused = false;
+        updateVoiceButton();
+    };
+
+    currentSpeechUtterance.onerror = () => {
+        isSpeechPlaying = false;
+        isSpeechPaused = false;
+        updateVoiceButton();
+        if (!speechCanceled) {
+            showToast('Failed to play voice explanation.', 'error');
+        }
+    };
+
+    window.speechSynthesis.speak(currentSpeechUtterance);
+    isSpeechPlaying = true;
+    isSpeechPaused = false;
+    updateVoiceButton();
+}
+
+function stopSpeech() {
+    const synthesis = window.speechSynthesis;
+    if (synthesis && (synthesis.speaking || synthesis.paused)) {
+        speechCanceled = true;
+        synthesis.cancel();
+    }
+    isSpeechPlaying = false;
+    isSpeechPaused = false;
+    updateVoiceButton();
+}
+
+function updateVoiceButton() {
+    const playBtn = document.getElementById('play-summary-btn');
+    if (!playBtn) return;
+
+    if (isSpeechPaused) {
+        playBtn.textContent = '▶ Resume explanation';
+    } else if (isSpeechPlaying) {
+        playBtn.textContent = '⏸ Pause explanation';
+    } else {
+        playBtn.textContent = '🔊 Voice explanation';
+    }
 }
 
 // ============================================
@@ -457,52 +591,130 @@ window.flipCard = function(index) {
 // ============================================
 
 /**
- * Get note text for AI processing
- * Uses extracted text from the note, or falls back to mock text
+ * Get note text for AI processing.
+ * Uses the extracted text saved during upload.
+ * Logs clearly if the text is missing so it's easy to debug.
  */
 function getNoteText() {
-    if (currentNote && currentNote.extractedText && currentNote.extractedText.trim().length > 100) {
-        return currentNote.extractedText;
+    const text = currentNote?.extractedText?.trim() || '';
+
+    if (text.length > 100) {
+        console.log(`📄 Using extracted text: ${text.length} characters from "${currentNote.title}"`);
+        return text;
     }
-    
-    // Fallback to mock text if no extracted text available
-    console.warn('⚠️ No extracted text found, using mock text');
-    return getMockNoteText();
+
+    // Text is missing — show a visible warning with a re-extract button
+    console.warn('⚠️ No extracted text found for this note.');
+    console.warn('   Note title:', currentNote?.title);
+    console.warn('   This usually means text extraction failed during upload.');
+
+    showMissingTextWarning();
+
+    return text || `Note title: ${currentNote?.title || 'Untitled'}. No text content available.`;
 }
 
 /**
- * Get mock note text for AI processing (fallback)
- * In production, this would extract text from the uploaded file
+ * Show a warning banner with a "Re-extract text" button when extractedText is empty.
  */
-function getMockNoteText() {
-    return `
-        Introduction to Photosynthesis
-        
-        Photosynthesis is the process by which plants convert light energy into chemical energy.
-        This process occurs in the chloroplasts of plant cells and involves two main stages:
-        the light-dependent reactions and the light-independent reactions (Calvin cycle).
-        
-        Light-Dependent Reactions:
-        - Occur in the thylakoid membranes
-        - Require light energy
-        - Produce ATP and NADPH
-        - Release oxygen as a byproduct
-        
-        Calvin Cycle (Light-Independent Reactions):
-        - Occur in the stroma
-        - Use ATP and NADPH from light reactions
-        - Fix carbon dioxide into glucose
-        - Do not directly require light
-        
-        The overall equation for photosynthesis is:
-        6CO2 + 6H2O + light energy → C6H12O6 + 6O2
-        
-        Importance of Photosynthesis:
-        - Produces oxygen for aerobic organisms
-        - Forms the base of most food chains
-        - Removes carbon dioxide from the atmosphere
-        - Stores energy in chemical bonds
+function showMissingTextWarning() {
+    // Don't add duplicate banners
+    if (document.getElementById('reextract-banner')) return;
+
+    const banner = document.createElement('div');
+    banner.id = 'reextract-banner';
+    banner.style.cssText = `
+        background: #fffbeb;
+        border: 1px solid #f59e0b;
+        border-radius: 10px;
+        padding: 1rem 1.25rem;
+        margin-bottom: 1.5rem;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        gap: 1rem;
+        flex-wrap: wrap;
     `;
+    banner.innerHTML = `
+        <div style="display:flex; align-items:center; gap:0.75rem;">
+            <span style="font-size:1.5rem;">⚠️</span>
+            <div>
+                <div style="font-weight:600; color:#92400e; margin-bottom:0.2rem;">No text extracted from this file</div>
+                <div style="font-size:0.875rem; color:#b45309;">
+                    Text extraction failed when this file was uploaded. Click "Re-extract" to try again,
+                    or delete this note and re-upload the file.
+                </div>
+            </div>
+        </div>
+        <button id="reextract-btn" style="
+            background:#f59e0b; color:white; border:none; border-radius:8px;
+            padding:0.625rem 1.25rem; font-weight:600; cursor:pointer;
+            font-size:0.875rem; white-space:nowrap;
+        ">🔄 Re-extract Text</button>
+    `;
+
+    // Insert before the tab buttons
+    const tabsEl = document.querySelector('.study-tabs') || document.querySelector('.tab-content');
+    if (tabsEl) {
+        tabsEl.parentNode.insertBefore(banner, tabsEl);
+    }
+
+    document.getElementById('reextract-btn').addEventListener('click', handleReextract);
+}
+
+/**
+ * Fetch the file from its stored URL and re-run text extraction,
+ * then update the note in the database.
+ */
+async function handleReextract() {
+    const btn = document.getElementById('reextract-btn');
+    if (!btn) return;
+
+    btn.disabled = true;
+    btn.textContent = '⏳ Extracting…';
+
+    try {
+        if (!currentNote?.fileURL) {
+            throw new Error('No file URL stored for this note. Please delete it and re-upload.');
+        }
+
+        // Fetch the file from Supabase Storage
+        const response = await fetch(currentNote.fileURL);
+        if (!response.ok) throw new Error(`Could not fetch file (HTTP ${response.status})`);
+
+        const blob = await response.blob();
+
+        // Reconstruct a File object so extractTextFromFile works
+        const file = new File([blob], currentNote.fileName || 'file', {
+            type: blob.type || currentNote.fileType || 'application/pdf',
+        });
+
+        // Use the already-imported extractTextFromFile (no dynamic import needed)
+        const extractedText = await extractTextFromFile(file);
+
+        if (!extractedText || extractedText.trim().length < 50) {
+            throw new Error(
+                'Still could not extract text. This PDF may be image-based (scanned). ' +
+                'Try converting it to a text-based PDF, or take a screenshot and upload as JPG/PNG.'
+            );
+        }
+
+        // Save the extracted text back to the database
+        await updateNote(currentNoteId, { extracted_text: extractedText });
+
+        // Update local state
+        currentNote.extractedText = extractedText;
+
+        // Remove the warning banner
+        document.getElementById('reextract-banner')?.remove();
+
+        showToast(`✅ Text extracted successfully (${extractedText.length} characters). You can now generate summaries.`, 'success');
+
+    } catch (error) {
+        console.error('Re-extract error:', error);
+        showToast(error.message || 'Re-extraction failed. Try deleting and re-uploading the file.', 'error');
+        btn.disabled = false;
+        btn.textContent = '🔄 Re-extract Text';
+    }
 }
 
 // Auto-initialize if DOM is ready
@@ -511,3 +723,4 @@ if (document.readyState === 'loading') {
 } else {
     initStudyPage();
 }
+

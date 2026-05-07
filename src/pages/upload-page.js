@@ -56,7 +56,7 @@ export async function initUploadPage() {
     await initAuthState();
 
     if (!isAuthenticated()) {
-        window.location.href = 'auth-refactored.html';
+        window.location.href = 'auth.html';
         return;
     }
 
@@ -333,3 +333,4 @@ if (document.readyState === 'loading') {
 } else {
     initUploadPage();
 }
+

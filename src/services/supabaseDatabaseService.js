@@ -535,3 +535,4 @@ function getMockNotes() {
   const notesStr = localStorage.getItem("mockNotes");
   return notesStr ? JSON.parse(notesStr) : [];
 }
+

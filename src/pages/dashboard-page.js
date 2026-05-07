@@ -24,7 +24,7 @@ export async function initDashboard() {
     
     // Check authentication
     if (!isAuthenticated()) {
-        window.location.href = 'auth-refactored.html';
+        window.location.href = 'auth.html';
         return;
     }
 
@@ -230,3 +230,4 @@ if (document.readyState === 'loading') {
 } else {
     initDashboard();
 }
+

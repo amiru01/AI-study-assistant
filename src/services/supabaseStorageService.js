@@ -275,3 +275,4 @@ function validateFile(file) {
         throw new Error('This file type is not allowed for security reasons.');
     }
 }
+

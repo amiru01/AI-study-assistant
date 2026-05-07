@@ -1,4 +1,4 @@
-﻿import { getCurrentUser, isAuthenticated, initAuthState, logoutUser } from '../services/supabaseAuthService.js';
+import { getCurrentUser, isAuthenticated, initAuthState, logoutUser } from '../services/supabaseAuthService.js';
 import { getNotes, getGeneratedContent, deleteNote } from '../services/supabaseDatabaseService.js';
 import { deleteFile } from '../services/supabaseStorageService.js';
 import { showToast } from '../components/toast.js';
@@ -15,7 +15,7 @@ export async function initLibraryPage() {
     await initAuthState();
 
     if (!isAuthenticated()) {
-        window.location.href = 'auth-refactored.html';
+        window.location.href = 'auth.html';
         return;
     }
 
@@ -26,7 +26,7 @@ export async function initLibraryPage() {
     initModal();
     initLogout();
 
-    console.log('✅ Library page initialized');
+    console.log('? Library page initialized');
 }
 
 async function displayUserInfo() {
@@ -66,7 +66,7 @@ async function loadNotes() {
         showToast('Failed to load library notes', 'error');
         notesContainer.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">⚠️</div>
+                <div class="empty-icon">📚</div>
                 <div class="empty-title">Unable to load notes</div>
                 <div class="empty-text">Please refresh the page or try again later.</div>
             </div>
@@ -102,13 +102,13 @@ function createNoteCard(note) {
                 <div class="note-card-icon">📄</div>
                 <div style="flex:1;">
                     <h3>${note.title || 'Untitled Note'}</h3>
-                    <p class="note-meta">${note.fileName || 'No filename'} • ${relativeDate}</p>
+                    <p class="note-meta">${note.fileName || 'No filename'} � ${relativeDate}</p>
                     <div class="note-badges">
                         <span class="note-badge">${size}</span>
                         <span class="note-badge">${relativeDate}</span>
                     </div>
                 </div>
-                <button class="note-action-btn btn btn-delete" data-note-id="${note.id}" data-file-path="${note.fileURL || ''}" data-action="delete" title="Delete note" style="flex:0; padding: 0.4rem 0.6rem; font-size: 1rem;">🗑️</button>
+                <button class="note-action-btn btn-icon" data-note-id="${note.id}" data-file-path="${note.fileURL || ''}" data-action="delete" title="Delete note" style="flex:0; padding: 0.35rem 0.55rem; font-size: 1rem; line-height: 1;">🗑️</button>
             </header>
             <main>
                 <p class="note-preview">Ready to generate summaries, quizzes, and flashcards from this note.</p>
@@ -137,7 +137,7 @@ async function handleDeleteNote(noteId, filePath) {
                     : filePath;
                 await deleteFile(storagePath);
             } catch (storageError) {
-                // Log but don't block — the DB record should still be removed
+                // Log but don't block � the DB record should still be removed
                 console.warn('Storage file deletion failed (may already be gone):', storageError);
             }
         }
@@ -272,7 +272,7 @@ async function openNotePreviewModal(note) {
         } else if (bodyContent) {
             bodyContent.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">💡</div>
+                    <div class="empty-icon">📚</div>
                     <div class="empty-title">No summary found yet</div>
                     <div class="empty-text">Open the study page to generate a summary for this note.</div>
                 </div>
@@ -284,7 +284,7 @@ async function openNotePreviewModal(note) {
         if (bodyContent) {
             bodyContent.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">⚠️</div>
+                    <div class="empty-icon">📚</div>
                     <div class="empty-title">Unable to load preview</div>
                     <div class="empty-text">Try again or open the note to generate content.</div>
                 </div>
@@ -309,7 +309,7 @@ function renderNotes(notes) {
     if (!notes.length) {
         notesContainer.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">🔍</div>
+                <div class="empty-icon">📚</div>
                 <div class="empty-title">No notes match your search</div>
                 <div class="empty-text">Try a different title, filename, or keyword.</div>
             </div>
@@ -354,3 +354,4 @@ if (document.readyState === 'loading') {
 } else {
     initLibraryPage();
 }
+

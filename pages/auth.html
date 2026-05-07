@@ -1,0 +1,363 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login / Register - AI Study Assistant</title>
+    <style>
+        *, *::before, *::after { margin: 0; padding: 0; box-sizing: border-box; }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Background blobs ── */
+        .bg-blobs {
+            position: fixed; inset: 0; pointer-events: none; z-index: 0;
+            background:
+                radial-gradient(circle at 20% 50%, rgba(255,255,255,.1) 0%, transparent 50%),
+                radial-gradient(circle at 80% 80%, rgba(255,255,255,.1) 0%, transparent 50%);
+        }
+
+        /* ── Navbar ── */
+        nav {
+            position: relative; z-index: 10;
+            background: rgba(255,255,255,.1);
+            backdrop-filter: blur(10px);
+            padding: 1rem 2rem;
+            display: flex; align-items: center; justify-content: space-between;
+        }
+        .logo {
+            display: flex; align-items: center; gap: .5rem;
+            text-decoration: none; color: white;
+            font-size: 1.25rem; font-weight: 700;
+        }
+        .back-home {
+            color: white; text-decoration: none; font-weight: 600;
+            padding: .5rem 1rem; border-radius: 8px;
+            transition: background .2s;
+        }
+        .back-home:hover { background: rgba(255,255,255,.2); }
+
+        /* ── Card ── */
+        .auth-container {
+            position: relative; z-index: 10;
+            flex: 1; display: flex; align-items: center; justify-content: center;
+            padding: 2rem;
+        }
+        .auth-card {
+            background: white; border-radius: 20px;
+            box-shadow: 0 20px 60px rgba(0,0,0,.3);
+            width: 100%; max-width: 460px; overflow: hidden;
+        }
+
+        /* ── Tabs ── */
+        .tab-switcher {
+            display: flex; background: #f3f4f6;
+            padding: .5rem; gap: .5rem;
+        }
+        .tab-btn {
+            flex: 1; padding: .875rem; border: none;
+            background: transparent; color: #6b7280;
+            font-weight: 600; font-size: .95rem;
+            border-radius: 10px; cursor: pointer; transition: all .25s;
+        }
+        .tab-btn.active {
+            background: white; color: #6366f1;
+            box-shadow: 0 2px 4px rgba(0,0,0,.1);
+        }
+
+        /* ── Form panels ── */
+        .form-container { display: none; padding: 2rem; }
+        .form-container.active {
+            display: block;
+            animation: fadeUp .3s ease;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(10px); }
+            to   { opacity: 1; transform: translateY(0); }
+        }
+
+        .form-title    { font-size: 1.75rem; color: #1f2937; text-align: center; margin-bottom: .35rem; }
+        .form-subtitle { color: #6b7280; text-align: center; margin-bottom: 1.75rem; font-size: .9rem; }
+
+        /* ── Google button ── */
+        .btn-google {
+            width: 100%;
+            display: flex; align-items: center; justify-content: center; gap: .75rem;
+            padding: .875rem 1rem;
+            background: white; color: #3c4043;
+            border: 1.5px solid #dadce0; border-radius: 10px;
+            font-size: .95rem; font-weight: 600; cursor: pointer;
+            transition: background .2s, box-shadow .2s;
+            margin-bottom: 1.5rem;
+        }
+        .btn-google:hover {
+            background: #f8f9fa;
+            box-shadow: 0 2px 8px rgba(0,0,0,.12);
+        }
+        .btn-google:disabled { opacity: .6; cursor: not-allowed; }
+        .google-icon { display: flex; align-items: center; flex-shrink: 0; }
+
+        /* ── Divider ── */
+        .divider {
+            display: flex; align-items: center; gap: 1rem;
+            margin-bottom: 1.5rem; color: #9ca3af; font-size: .85rem;
+        }
+        .divider::before, .divider::after {
+            content: ''; flex: 1; height: 1px; background: #e5e7eb;
+        }
+
+        /* ── Inputs ── */
+        .input-group { margin-bottom: 1.25rem; }
+        .input-group label {
+            display: block; color: #374151;
+            font-weight: 600; font-size: .875rem; margin-bottom: .4rem;
+        }
+        .input-wrapper { position: relative; display: flex; align-items: center; }
+        .input-icon { position: absolute; left: .875rem; font-size: 1.1rem; pointer-events: none; }
+        .input-wrapper input {
+            width: 100%;
+            padding: .875rem .875rem .875rem 2.75rem;
+            border: 1.5px solid #e5e7eb; border-radius: 10px;
+            font-size: .95rem; transition: border-color .2s, box-shadow .2s;
+        }
+        .input-wrapper input:focus {
+            outline: none; border-color: #6366f1;
+            box-shadow: 0 0 0 3px rgba(99,102,241,.12);
+        }
+        .input-wrapper input.error  { border-color: #ef4444; }
+        .input-wrapper input.success { border-color: #10b981; }
+        .toggle-password {
+            position: absolute; right: .75rem;
+            background: none; border: none; cursor: pointer;
+            font-size: 1.1rem; padding: .4rem;
+        }
+        .error-message {
+            display: block; color: #ef4444;
+            font-size: .8rem; margin-top: .3rem; min-height: 1.1rem;
+        }
+
+        /* ── Password strength ── */
+        .password-strength { margin-top: .5rem; }
+        .strength-bar {
+            height: 4px; background: #e5e7eb;
+            border-radius: 2px; overflow: hidden; margin-bottom: .25rem;
+        }
+        .strength-fill { height: 100%; width: 0; transition: all .3s; }
+        .strength-fill.weak   { width: 33%; background: #ef4444; }
+        .strength-fill.medium { width: 66%; background: #f59e0b; }
+        .strength-fill.strong { width: 100%; background: #10b981; }
+        .strength-text { font-size: .8rem; color: #6b7280; }
+
+        /* ── Form options row ── */
+        .form-options {
+            display: flex; justify-content: space-between; align-items: center;
+            margin-bottom: 1.25rem;
+        }
+        .checkbox-label {
+            display: flex; align-items: center; gap: .5rem;
+            color: #6b7280; font-size: .875rem; cursor: pointer;
+        }
+        .forgot-password {
+            color: #6366f1; text-decoration: none;
+            font-weight: 600; font-size: .875rem;
+        }
+        .forgot-password:hover { text-decoration: underline; }
+
+        /* ── Terms ── */
+        .terms-label {
+            display: flex; align-items: flex-start; gap: .5rem;
+            color: #6b7280; font-size: .875rem; margin-bottom: 1.25rem;
+        }
+        .terms-label input { margin-top: .2rem; cursor: pointer; }
+        .terms-label a { color: #6366f1; text-decoration: none; }
+        .terms-label a:hover { text-decoration: underline; }
+
+        /* ── Submit button ── */
+        .btn-submit {
+            width: 100%; padding: .9rem;
+            background: linear-gradient(135deg, #6366f1 0%, #8b5cf6 100%);
+            color: white; border: none; border-radius: 10px;
+            font-size: 1rem; font-weight: 600; cursor: pointer;
+            transition: transform .2s, box-shadow .2s;
+        }
+        .btn-submit:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(99,102,241,.35);
+        }
+        .btn-submit:active  { transform: translateY(0); }
+        .btn-submit:disabled { opacity: .6; cursor: not-allowed; transform: none; }
+
+        /* ── Responsive ── */
+        @media (max-width: 500px) {
+            .auth-card { margin: .5rem; }
+            .form-container { padding: 1.5rem; }
+            .form-title { font-size: 1.4rem; }
+        }
+    </style>
+</head>
+<body>
+    <div class="bg-blobs"></div>
+
+    <nav>
+        <a href="../index.html" class="logo">
+            <span>🎓</span>
+            <span>AI Study Assistant</span>
+        </a>
+        <a href="../index.html" class="back-home">← Back to Home</a>
+    </nav>
+
+    <div class="auth-container">
+        <div class="auth-card">
+
+            <!-- Tabs -->
+            <div class="tab-switcher">
+                <button class="tab-btn active" data-tab="login">Login</button>
+                <button class="tab-btn" data-tab="register">Register</button>
+            </div>
+
+            <!-- ══ LOGIN ══ -->
+            <div class="form-container active" id="login-form">
+                <h2 class="form-title">Welcome Back!</h2>
+                <p class="form-subtitle">Login to continue your learning journey</p>
+
+                <!-- Google -->
+                <button class="btn-google" id="google-login-btn">
+                    <span class="google-icon">
+                        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                            <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                        </svg>
+                    </span>
+                    Continue with Google
+                </button>
+
+                <div class="divider">or sign in with email</div>
+
+                <form id="loginForm" novalidate>
+                    <div class="input-group">
+                        <label for="login-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">📧</span>
+                            <input type="email" id="login-email" placeholder="Enter your email" required>
+                        </div>
+                        <span class="error-message" id="login-email-error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="login-password">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="login-password" placeholder="Enter your password" required>
+                            <button type="button" class="toggle-password" data-target="login-password">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <span class="error-message" id="login-password-error"></span>
+                    </div>
+
+                    <div class="form-options">
+                        <label class="checkbox-label">
+                            <input type="checkbox" id="remember-me">
+                            <span>Remember me</span>
+                        </label>
+                        <a href="#" class="forgot-password">Forgot Password?</a>
+                    </div>
+
+                    <button type="submit" class="btn-submit" id="login-btn">
+                        <span class="btn-text">Login</span>
+                    </button>
+                </form>
+            </div>
+
+            <!-- ══ REGISTER ══ -->
+            <div class="form-container" id="register-form">
+                <h2 class="form-title">Create Account</h2>
+                <p class="form-subtitle">Start your AI-powered learning journey</p>
+
+                <!-- Google -->
+                <button class="btn-google" id="google-register-btn">
+                    <span class="google-icon">
+                        <svg width="18" height="18" viewBox="0 0 18 18" xmlns="http://www.w3.org/2000/svg">
+                            <path d="M17.64 9.2c0-.637-.057-1.251-.164-1.84H9v3.481h4.844c-.209 1.125-.843 2.078-1.796 2.717v2.258h2.908c1.702-1.567 2.684-3.874 2.684-6.615z" fill="#4285F4"/>
+                            <path d="M9 18c2.43 0 4.467-.806 5.956-2.18l-2.908-2.259c-.806.54-1.837.86-3.048.86-2.344 0-4.328-1.584-5.036-3.711H.957v2.332A8.997 8.997 0 0 0 9 18z" fill="#34A853"/>
+                            <path d="M3.964 10.71A5.41 5.41 0 0 1 3.682 9c0-.593.102-1.17.282-1.71V4.958H.957A8.996 8.996 0 0 0 0 9c0 1.452.348 2.827.957 4.042l3.007-2.332z" fill="#FBBC05"/>
+                            <path d="M9 3.58c1.321 0 2.508.454 3.44 1.345l2.582-2.58C13.463.891 11.426 0 9 0A8.997 8.997 0 0 0 .957 4.958L3.964 6.29C4.672 4.163 6.656 3.58 9 3.58z" fill="#EA4335"/>
+                        </svg>
+                    </span>
+                    Continue with Google
+                </button>
+
+                <div class="divider">or register with email</div>
+
+                <form id="registerForm" novalidate>
+                    <div class="input-group">
+                        <label for="register-name">Full Name</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">👤</span>
+                            <input type="text" id="register-name" placeholder="Enter your full name" required>
+                        </div>
+                        <span class="error-message" id="register-name-error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-email">Email Address</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">📧</span>
+                            <input type="email" id="register-email" placeholder="Enter your email" required>
+                        </div>
+                        <span class="error-message" id="register-email-error"></span>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-password">Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="register-password" placeholder="Create a password (min 6 chars)" required>
+                            <button type="button" class="toggle-password" data-target="register-password">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <span class="error-message" id="register-password-error"></span>
+                        <div class="password-strength" id="password-strength">
+                            <div class="strength-bar"><div class="strength-fill"></div></div>
+                            <span class="strength-text"></span>
+                        </div>
+                    </div>
+
+                    <div class="input-group">
+                        <label for="register-confirm-password">Confirm Password</label>
+                        <div class="input-wrapper">
+                            <span class="input-icon">🔒</span>
+                            <input type="password" id="register-confirm-password" placeholder="Confirm your password" required>
+                            <button type="button" class="toggle-password" data-target="register-confirm-password">
+                                <span class="eye-icon">👁️</span>
+                            </button>
+                        </div>
+                        <span class="error-message" id="register-confirm-password-error"></span>
+                    </div>
+
+                    <label class="terms-label">
+                        <input type="checkbox" id="terms-checkbox" required>
+                        <span>I agree to the <a href="#">Terms &amp; Conditions</a></span>
+                    </label>
+
+                    <button type="submit" class="btn-submit" id="register-btn">
+                        <span class="btn-text">Create Account</span>
+                    </button>
+                </form>
+            </div>
+
+        </div><!-- /.auth-card -->
+    </div>
+
+    <script type="module" src="../src/pages/auth-page.js"></script>
+</body>
+</html>

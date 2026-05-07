@@ -221,11 +221,11 @@
       }
 
       .search-box input {
-        padding: 0.5rem 2.25rem 0.5rem 2.5rem;
+        padding: 0.9rem 2.3rem 0.9rem 2.7rem;
         border: 1px solid #e2e8f0;
-        border-radius: 8px;
-        width: 300px;
-        font-size: 0.875rem;
+        border-radius: 12px;
+        width: min(100%, 520px);
+        font-size: 1rem;
         transition: border-color 0.2s, box-shadow 0.2s;
         outline: none;
       }
@@ -649,6 +649,7 @@
     </div>
 
     <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+    <script src="../src/config/env-config.js"></script>
     <script type="module" src="../src/pages/dashboard-spa.js"></script>
   </body>
 </html>
