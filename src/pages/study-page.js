@@ -12,16 +12,12 @@ import { extractTextFromFile } from '../services/textExtractionService.js';
 import { showToast } from '../components/toast.js';
 import { showLoader, hideLoader } from '../components/loader.js';
 import { formatDate, formatSummary } from '../utils/formatting.js';
+import { animateDynamicContent, animateViewSwap, initMotionExperience } from '../utils/motion.js';
 
 // Global state
 let currentNote = null;
 let currentNoteId = null;
 let currentTab = 'summary';
-let currentSpeechUtterance = null;
-let isSpeechPlaying = false;
-let isSpeechPaused = false;
-let speechCanceled = false;
-let currentSummaryText = '';
 
 // ============================================
 // INITIALIZATION
@@ -31,6 +27,7 @@ let currentSummaryText = '';
  * Initialize study page
  */
 export async function initStudyPage() {
+    initMotionExperience();
     // Initialize auth state first
     await initAuthState();
     
@@ -113,15 +110,14 @@ function initTabs() {
         button.addEventListener('click', () => {
             const targetTab = button.getAttribute('data-tab');
 
-            // Stop any active speech when changing tabs
-            stopSpeech();
-
             // Update active states
             tabButtons.forEach(btn => btn.classList.remove('active'));
             tabContents.forEach(content => content.classList.remove('active'));
 
             button.classList.add('active');
-            document.getElementById(`${targetTab}-tab`).classList.add('active');
+            const activePanel = document.getElementById(`${targetTab}-tab`);
+            activePanel.classList.add('active');
+            animateViewSwap(activePanel);
         });
     });
 }
@@ -131,27 +127,9 @@ function initTabs() {
 // ============================================
 
 function initGenerateButtons() {
-    const summaryButton = document.getElementById('generate-summary-btn');
-    const quizButton = document.getElementById('generate-quiz-btn');
-    const flashcardsButton = document.getElementById('generate-flashcards-btn');
-
-    if (summaryButton) {
-        summaryButton.addEventListener('click', handleGenerateSummary);
-    } else {
-        console.warn('Study page: Generate Summary button not found');
-    }
-
-    if (quizButton) {
-        quizButton.addEventListener('click', handleGenerateQuiz);
-    } else {
-        console.warn('Study page: Generate Quiz button not found');
-    }
-
-    if (flashcardsButton) {
-        flashcardsButton.addEventListener('click', handleGenerateFlashcards);
-    } else {
-        console.warn('Study page: Generate Flashcards button not found');
-    }
+    document.getElementById('generate-summary-btn').addEventListener('click', handleGenerateSummary);
+    document.getElementById('generate-quiz-btn').addEventListener('click', handleGenerateQuiz);
+    document.getElementById('generate-flashcards-btn').addEventListener('click', handleGenerateFlashcards);
 }
 
 // ============================================
@@ -237,12 +215,10 @@ async function handleGenerateSummary() {
 function displaySummary(summary) {
     const content = document.getElementById('summary-content');
     const formattedSummary = formatSummary(summary);
-    currentSummaryText = summary || '';
 
     content.innerHTML = `
         <div class="summary-actions">
-            <button id="copy-summary-btn" class="btn btn-secondary">Copy</button>
-            <button id="play-summary-btn" class="btn btn-secondary">🔊 Voice explanation</button>
+            <button id="copy-summary-btn" class="btn btn-secondary">Copy summary</button>
         </div>
         <div class="summary-text summary-formatted">
             ${formattedSummary}
@@ -252,125 +228,21 @@ function displaySummary(summary) {
     const copyBtn = document.getElementById('copy-summary-btn');
     if (copyBtn) {
         copyBtn.addEventListener('click', () => {
-            copyTextToClipboard(currentSummaryText);
+            copyTextToClipboard(summary);
         });
     }
-
-    const playBtn = document.getElementById('play-summary-btn');
-    if (playBtn) {
-        playBtn.addEventListener('click', () => {
-            handleVoiceToggle(summary);
-        });
-    }
+    animateDynamicContent(content);
 }
 
 function copyTextToClipboard(text) {
-    const summaryText = text || '';
-    if (!summaryText.trim()) {
-        showToast('Nothing to copy yet. Generate the summary first.', 'warning');
+    if (!navigator.clipboard) {
+        showToast('Clipboard not supported in this browser.', 'warning');
         return;
     }
 
-    if (navigator.clipboard && navigator.clipboard.writeText) {
-        navigator.clipboard.writeText(summaryText)
-            .then(() => showToast('Summary copied to clipboard!', 'success'))
-            .catch(() => showToast('Unable to copy summary.', 'error'));
-        return;
-    }
-
-    const textarea = document.createElement('textarea');
-    textarea.value = summaryText;
-    textarea.style.position = 'fixed';
-    textarea.style.opacity = '0';
-    textarea.style.pointerEvents = 'none';
-    document.body.appendChild(textarea);
-    textarea.select();
-
-    try {
-        const successful = document.execCommand('copy');
-        showToast(successful ? 'Summary copied to clipboard!' : 'Unable to copy summary.', successful ? 'success' : 'error');
-    } catch (error) {
-        showToast('Unable to copy summary.', 'error');
-    }
-
-    document.body.removeChild(textarea);
-}
-
-function handleVoiceToggle(text) {
-    if (!('speechSynthesis' in window)) {
-        showToast('Voice explanation is not supported in this browser.', 'warning');
-        return;
-    }
-
-    const synthesis = window.speechSynthesis;
-
-    if (synthesis.paused && currentSpeechUtterance) {
-        synthesis.resume();
-        isSpeechPlaying = true;
-        isSpeechPaused = false;
-        updateVoiceButton();
-        return;
-    }
-
-    if (synthesis.speaking && !synthesis.paused) {
-        synthesis.pause();
-        isSpeechPlaying = false;
-        isSpeechPaused = true;
-        updateVoiceButton();
-        return;
-    }
-
-    stopSpeech();
-    speechCanceled = false;
-
-    currentSpeechUtterance = new SpeechSynthesisUtterance(text);
-    currentSpeechUtterance.lang = 'en-US';
-    currentSpeechUtterance.rate = 1;
-    currentSpeechUtterance.pitch = 1;
-
-    currentSpeechUtterance.onend = () => {
-        isSpeechPlaying = false;
-        isSpeechPaused = false;
-        updateVoiceButton();
-    };
-
-    currentSpeechUtterance.onerror = () => {
-        isSpeechPlaying = false;
-        isSpeechPaused = false;
-        updateVoiceButton();
-        if (!speechCanceled) {
-            showToast('Failed to play voice explanation.', 'error');
-        }
-    };
-
-    window.speechSynthesis.speak(currentSpeechUtterance);
-    isSpeechPlaying = true;
-    isSpeechPaused = false;
-    updateVoiceButton();
-}
-
-function stopSpeech() {
-    const synthesis = window.speechSynthesis;
-    if (synthesis && (synthesis.speaking || synthesis.paused)) {
-        speechCanceled = true;
-        synthesis.cancel();
-    }
-    isSpeechPlaying = false;
-    isSpeechPaused = false;
-    updateVoiceButton();
-}
-
-function updateVoiceButton() {
-    const playBtn = document.getElementById('play-summary-btn');
-    if (!playBtn) return;
-
-    if (isSpeechPaused) {
-        playBtn.textContent = '▶ Resume explanation';
-    } else if (isSpeechPlaying) {
-        playBtn.textContent = '⏸ Pause explanation';
-    } else {
-        playBtn.textContent = '🔊 Voice explanation';
-    }
+    navigator.clipboard.writeText(text)
+        .then(() => showToast('Summary copied to clipboard!', 'success'))
+        .catch(() => showToast('Unable to copy summary.', 'error'));
 }
 
 // ============================================
@@ -452,6 +324,7 @@ function displayQuiz(questions) {
 
     // Store quiz data
     window.currentQuiz = questions;
+    animateDynamicContent(content);
 }
 
 // Quiz interaction functions (global for onclick)
@@ -578,6 +451,7 @@ function displayFlashcards(flashcards) {
     `).join('');
 
     content.innerHTML = `<div class="flashcard-container">${flashcardsHTML}</div>`;
+    animateDynamicContent(content);
 }
 
 // Flashcard flip function (global for onclick)
@@ -659,6 +533,7 @@ function showMissingTextWarning() {
     }
 
     document.getElementById('reextract-btn').addEventListener('click', handleReextract);
+    animateDynamicContent(banner);
 }
 
 /**

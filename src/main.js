@@ -1,7 +1,11 @@
+import { initMotionExperience } from "./utils/motion.js";
+
 /**
  * Landing page entry point
  * Handles FAQ accordion and smooth scroll interactions
  */
+
+initMotionExperience();
 
 // FAQ accordion — native <details> handles open/close,
 // but we close others when one opens for a cleaner UX

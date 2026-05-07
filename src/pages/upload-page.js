@@ -17,6 +17,7 @@ import { saveNote } from '../services/supabaseDatabaseService.js';
 import { validateFile } from '../utils/validation.js';
 import { formatFileSize } from '../utils/formatting.js';
 import { showToast } from '../components/toast.js';
+import { animateDynamicContent, animateViewSwap, initMotionExperience } from '../utils/motion.js';
 
 // ============================================
 // CONSTANTS
@@ -53,6 +54,7 @@ let selectedFile = null;
 // ============================================
 
 export async function initUploadPage() {
+    initMotionExperience();
     await initAuthState();
 
     if (!isAuthenticated()) {
@@ -148,6 +150,7 @@ function handleFileSelect(file) {
 
     document.getElementById('upload-zone').style.display = 'none';
     document.getElementById('file-preview').classList.add('show');
+    animateViewSwap(document.getElementById('file-preview'));
 }
 
 function showValidationError(message) {
@@ -268,6 +271,7 @@ async function startUpload() {
         setTimeout(() => {
             document.getElementById('file-preview').classList.remove('show');
             document.getElementById('success-message').classList.add('show');
+            animateDynamicContent(document.getElementById('success-message'));
         }, 500);
 
         showToast('File uploaded successfully!', 'success');
@@ -290,6 +294,7 @@ function cancelUpload() {
     document.getElementById('file-preview').classList.remove('show');
     document.getElementById('upload-zone').style.display = 'block';
     document.getElementById('upload-progress').classList.remove('show');
+    animateViewSwap(document.getElementById('upload-zone'));
     resetProgress();
     resetUploadButton();
     clearValidationError();
@@ -302,6 +307,7 @@ function uploadAnother() {
     document.getElementById('success-message').classList.remove('show');
     document.getElementById('upload-zone').style.display = 'block';
     document.getElementById('upload-progress').classList.remove('show');
+    animateViewSwap(document.getElementById('upload-zone'));
     resetProgress();
     resetUploadButton();
     clearValidationError();

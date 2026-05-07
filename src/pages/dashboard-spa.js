@@ -18,6 +18,12 @@ import {
 import { deleteFile } from "../services/supabaseStorageService.js";
 import { showToast } from "../components/toast.js";
 import { formatDate } from "../utils/formatting.js";
+import {
+  animateDynamicContent,
+  animateViewSwap,
+  initMotionExperience,
+  showSkeleton,
+} from "../utils/motion.js";
 
 // Global state
 let currentView = "dashboard";
@@ -35,6 +41,7 @@ let statsData = {
 // ============================================
 
 async function init() {
+  initMotionExperience();
   await initAuthState();
 
   if (!isAuthenticated()) {
@@ -153,8 +160,7 @@ function loadView(view) {
   pageTitle.textContent = titles[view] || "Dashboard";
 
   // Show loading
-  contentArea.innerHTML =
-    '<div class="loading"><div class="spinner"></div></div>';
+  showSkeleton(contentArea, view === "dashboard" ? 4 : 3);
 
   // Load view content
   setTimeout(() => {
@@ -177,6 +183,7 @@ function loadView(view) {
       default:
         renderDashboard();
     }
+    animateViewSwap(contentArea);
   }, 300);
 }
 
@@ -250,6 +257,7 @@ function renderDashboard() {
             </div>
         </div>
     `;
+  animateDynamicContent(contentArea);
 }
 
 function renderRecentNotes() {
@@ -296,6 +304,7 @@ function renderNotes(filteredNotes = notesData, searchQuery = "") {
                 </div>
             </div>
         `;
+    animateDynamicContent(contentArea);
     return;
   }
 
@@ -312,6 +321,7 @@ function renderNotes(filteredNotes = notesData, searchQuery = "") {
     `;
 
   attachNoteCardListeners();
+  animateDynamicContent(contentArea);
 }
 
 function createNoteCard(note) {
@@ -432,6 +442,7 @@ function renderSummaries() {
                 </div>
             </div>
         `;
+    animateDynamicContent(contentArea);
     return;
   }
 
@@ -445,6 +456,7 @@ function renderSummaries() {
             </div>
         </div>
     `;
+  animateDynamicContent(contentArea);
 }
 
 // ============================================
@@ -469,6 +481,7 @@ function renderQuiz() {
                 </div>
             </div>
         `;
+    animateDynamicContent(contentArea);
     return;
   }
 
@@ -482,6 +495,7 @@ function renderQuiz() {
             </div>
         </div>
     `;
+  animateDynamicContent(contentArea);
 }
 
 // ============================================
@@ -508,6 +522,7 @@ function renderFlashcards() {
                 </div>
             </div>
         `;
+    animateDynamicContent(contentArea);
     return;
   }
 
@@ -521,6 +536,7 @@ function renderFlashcards() {
             </div>
         </div>
     `;
+  animateDynamicContent(contentArea);
 }
 
 // ============================================

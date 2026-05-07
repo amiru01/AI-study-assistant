@@ -1,3 +1,5 @@
+import { animateToastIn, animateToastOut } from '../utils/motion.js';
+
 /**
  * Toast Notification Component
  * 
@@ -29,6 +31,7 @@ export function showToast(message, type = 'success', duration = 4000) {
     // Trigger animation
     setTimeout(() => {
         toast.classList.add('show');
+        animateToastIn(toast);
     }, 10);
 
     // Auto-hide after duration
@@ -87,12 +90,12 @@ function createToastElement(message, type) {
  */
 function hideToast(toast) {
     toast.classList.remove('show');
-    
-    setTimeout(() => {
+
+    animateToastOut(toast).finally(() => {
         if (toast.parentNode) {
             toast.parentNode.removeChild(toast);
         }
-    }, 300);
+    });
 }
 
 /**
@@ -136,13 +139,15 @@ if (!document.getElementById('toast-styles')) {
             align-items: center;
             gap: 0.75rem;
             transform: translateX(450px);
-            transition: transform 0.3s ease;
+            opacity: 0;
+            transition: transform 0.3s ease, opacity 0.3s ease;
             cursor: pointer;
             position: relative;
         }
 
         .toast.show {
             transform: translateX(0);
+            opacity: 1;
         }
 
         .toast-success {

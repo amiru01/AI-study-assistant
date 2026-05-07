@@ -3,6 +3,7 @@ import { getNotes, getGeneratedContent, deleteNote } from '../services/supabaseD
 import { deleteFile } from '../services/supabaseStorageService.js';
 import { showToast } from '../components/toast.js';
 import { formatDate, formatFileSize, formatSummary } from '../utils/formatting.js';
+import { animateDynamicContent, initMotionExperience, showSkeleton } from '../utils/motion.js';
 
 let notesData = [];
 let currentSort = 'latest';
@@ -12,6 +13,7 @@ let activeNoteId = null;
  * Initialize library page
  */
 export async function initLibraryPage() {
+    initMotionExperience();
     await initAuthState();
 
     if (!isAuthenticated()) {
@@ -44,18 +46,20 @@ async function loadNotes() {
     if (!notesContainer) return;
 
     try {
+        showSkeleton(notesContainer, 3);
         const notes = await getNotes();
         notesData = sortNotes(dedupeNotes(notes), currentSort);
 
         if (!notesData.length) {
             notesContainer.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📚</div>
+                    <div class="empty-icon">??</div>
                     <div class="empty-title">No notes uploaded yet</div>
                     <div class="empty-text">Upload a file to start generating summaries and quizzes.</div>
                 </div>
             `;
             updateNotesCount(0);
+            animateDynamicContent(notesContainer);
             return;
         }
 
@@ -66,12 +70,13 @@ async function loadNotes() {
         showToast('Failed to load library notes', 'error');
         notesContainer.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📚</div>
+                <div class="empty-icon">??</div>
                 <div class="empty-title">Unable to load notes</div>
                 <div class="empty-text">Please refresh the page or try again later.</div>
             </div>
         `;
         updateNotesCount(0);
+        animateDynamicContent(notesContainer);
     }
 }
 
@@ -99,7 +104,7 @@ function createNoteCard(note) {
     return `
         <article class="note-card" data-note-id="${note.id}">
             <header>
-                <div class="note-card-icon">📄</div>
+                <div class="note-card-icon">??</div>
                 <div style="flex:1;">
                     <h3>${note.title || 'Untitled Note'}</h3>
                     <p class="note-meta">${note.fileName || 'No filename'} � ${relativeDate}</p>
@@ -108,7 +113,7 @@ function createNoteCard(note) {
                         <span class="note-badge">${relativeDate}</span>
                     </div>
                 </div>
-                <button class="note-action-btn btn-icon" data-note-id="${note.id}" data-file-path="${note.fileURL || ''}" data-action="delete" title="Delete note" style="flex:0; padding: 0.35rem 0.55rem; font-size: 1rem; line-height: 1;">🗑️</button>
+                <button class="note-action-btn btn btn-delete" data-note-id="${note.id}" data-file-path="${note.fileURL || ''}" data-action="delete" title="Delete note" style="flex:0; padding: 0.4rem 0.6rem; font-size: 1rem;">???</button>
             </header>
             <main>
                 <p class="note-preview">Ready to generate summaries, quizzes, and flashcards from this note.</p>
@@ -262,6 +267,7 @@ async function openNotePreviewModal(note) {
 
     modal.classList.remove('hidden');
     modal.setAttribute('aria-hidden', 'false');
+    animateDynamicContent(modal);
 
     try {
         const savedSummary = await getGeneratedContent(note.id, 'summary');
@@ -272,7 +278,7 @@ async function openNotePreviewModal(note) {
         } else if (bodyContent) {
             bodyContent.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📚</div>
+                    <div class="empty-icon">??</div>
                     <div class="empty-title">No summary found yet</div>
                     <div class="empty-text">Open the study page to generate a summary for this note.</div>
                 </div>
@@ -284,7 +290,7 @@ async function openNotePreviewModal(note) {
         if (bodyContent) {
             bodyContent.innerHTML = `
                 <div class="empty-state">
-                    <div class="empty-icon">📚</div>
+                    <div class="empty-icon">??</div>
                     <div class="empty-title">Unable to load preview</div>
                     <div class="empty-text">Try again or open the note to generate content.</div>
                 </div>
@@ -309,7 +315,7 @@ function renderNotes(notes) {
     if (!notes.length) {
         notesContainer.innerHTML = `
             <div class="empty-state">
-                <div class="empty-icon">📚</div>
+                <div class="empty-icon">??</div>
                 <div class="empty-title">No notes match your search</div>
                 <div class="empty-text">Try a different title, filename, or keyword.</div>
             </div>
@@ -321,6 +327,7 @@ function renderNotes(notes) {
     notesContainer.innerHTML = notes.map(createNoteCard).join('');
     attachNoteListeners();
     updateNotesCount(notes.length);
+    animateDynamicContent(notesContainer);
 }
 
 function updateNotesCount(count) {
@@ -354,4 +361,3 @@ if (document.readyState === 'loading') {
 } else {
     initLibraryPage();
 }
-

@@ -9,6 +9,7 @@ import { registerUser, loginUser, loginWithGoogle } from '../services/supabaseAu
 import { validateEmail, validatePassword, validatePasswordMatch, validateRequired, validateMinLength } from '../utils/validation.js';
 import { showToast } from '../components/toast.js';
 import { showButtonLoader, hideButtonLoader } from '../components/loader.js';
+import { animateDynamicContent, animateViewSwap, initMotionExperience } from '../utils/motion.js';
 
 // ============================================
 // INITIALIZATION
@@ -18,6 +19,7 @@ import { showButtonLoader, hideButtonLoader } from '../components/loader.js';
  * Initialize authentication page
  */
 export function initAuthPage() {
+    initMotionExperience();
     initTabSwitching();
     initPasswordToggle();
     initPasswordStrength();
@@ -45,7 +47,9 @@ function initTabSwitching() {
             formContainers.forEach(form => form.classList.remove('active'));
 
             button.classList.add('active');
-            document.getElementById(`${targetTab}-form`)?.classList.add('active');
+            const activeForm = document.getElementById(`${targetTab}-form`);
+            activeForm?.classList.add('active');
+            if (activeForm) animateViewSwap(activeForm);
 
             // Clear errors
             clearAllErrors();
@@ -104,6 +108,7 @@ function initPasswordStrength() {
         // Update UI
         strengthFill.className = `strength-fill ${validation.strength}`;
         strengthText.className = `strength-text ${validation.strength}`;
+        animateDynamicContent(strengthContainer);
         
         const labels = {
             weak: 'Weak password',

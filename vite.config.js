@@ -32,6 +32,6 @@ export default defineConfig({
     },
 
     optimizeDeps: {
-        include: ['pdfjs-dist', 'mammoth', '@supabase/supabase-js'],
+        include: ['pdfjs-dist', 'mammoth', '@supabase/supabase-js', 'motion'],
     },
 });
