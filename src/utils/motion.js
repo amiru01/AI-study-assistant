@@ -2,9 +2,6 @@ import { animate, inView } from "motion";
 
 const motionState = {
   initialized: false,
-  cursor: null,
-  cursorX: 0,
-  cursorY: 0,
   activeLink: null,
 };
 
@@ -28,7 +25,6 @@ export function initMotionExperience() {
   initModalObserver();
   initInputMicroInteractions();
   initHeroMotion();
-  initCursor();
   animateDynamicContent(document);
 }
 
@@ -343,40 +339,6 @@ function initHeroMotion() {
     { passive: true },
   );
 
-  if (canHover()) {
-    hero.addEventListener("pointermove", (event) => {
-      const rect = hero.getBoundingClientRect();
-      const x = ((event.clientX - rect.left) / rect.width - 0.5) * 16;
-      const y = ((event.clientY - rect.top) / rect.height - 0.5) * 12;
-      hero.style.setProperty("--pointer-x", `${x}px`);
-      hero.style.setProperty("--pointer-y", `${y}px`);
-    });
-  }
-}
-
-function initCursor() {
-  if (!canHover() || prefersReducedMotion()) return;
-
-  const cursor = document.createElement("div");
-  cursor.className = "motion-cursor";
-  cursor.setAttribute("aria-hidden", "true");
-  document.body.appendChild(cursor);
-  motionState.cursor = cursor;
-
-  document.addEventListener("pointermove", (event) => {
-    motionState.cursorX = event.clientX;
-    motionState.cursorY = event.clientY;
-    animate(
-      cursor,
-      { x: motionState.cursorX - 10, y: motionState.cursorY - 10 },
-      { duration: 0.16, easing: "ease-out" },
-    );
-  });
-
-  document.addEventListener("pointerover", (event) => {
-    const interactive = event.target.closest("a, button, input, select, textarea, .note-card, .stat-card");
-    cursor.classList.toggle("is-interactive", Boolean(interactive));
-  });
 }
 
 function animateCounters(scope) {
@@ -388,6 +350,8 @@ function animateCounters(scope) {
     if (counter.dataset.counterReady === "true") return;
 
     const text = counter.textContent.trim();
+    if (text.includes("/")) return;
+
     const numeric = Number.parseFloat(text.replace(/[^0-9.]/g, ""));
     if (!Number.isFinite(numeric)) return;
 
@@ -436,6 +400,8 @@ function injectMotionStyles() {
     }
 
     body {
+      background:
+        linear-gradient(180deg, #eef7ff 0%, #f6fbff 42%, #f8fafc 100%);
       transition: background-color 240ms ease, color 240ms ease;
     }
 
@@ -446,9 +412,9 @@ function injectMotionStyles() {
       z-index: -1;
       pointer-events: none;
       background:
-        radial-gradient(circle at calc(20% + var(--pointer-x, 0px)) calc(20% + var(--pointer-y, 0px)), rgba(79,70,229,0.08), transparent 28%),
+        radial-gradient(circle at 18% 18%, rgba(79,70,229,0.055), transparent 28%),
         radial-gradient(circle at 80% 10%, rgba(6,182,212,0.07), transparent 24%),
-        radial-gradient(circle at 45% 90%, rgba(16,185,129,0.06), transparent 25%);
+        radial-gradient(circle at 45% 90%, rgba(14,165,233,0.055), transparent 25%);
       animation: motionGradientDrift 18s ease-in-out infinite alternate;
       will-change: transform;
     }
@@ -470,13 +436,11 @@ function injectMotionStyles() {
       transform: translateY(-112%);
     }
 
-    .nav-links a,
-    .nav-item {
+    .nav-links a {
       position: relative;
     }
 
-    .nav-links a::after,
-    .nav-item::after {
+    .nav-links a::after {
       content: "";
       position: absolute;
       left: 50%;
@@ -490,8 +454,7 @@ function injectMotionStyles() {
     }
 
     .nav-links a:hover::after,
-    .nav-links a.motion-active-link::after,
-    .nav-item.active::after {
+    .nav-links a.motion-active-link::after {
       left: 0;
       right: 0;
       opacity: 0.75;
@@ -642,28 +605,6 @@ function injectMotionStyles() {
       will-change: transform, opacity;
     }
 
-    .motion-cursor {
-      position: fixed;
-      top: 0;
-      left: 0;
-      width: 20px;
-      height: 20px;
-      border-radius: 50%;
-      pointer-events: none;
-      z-index: 2147483647;
-      border: 1px solid rgba(79,70,229,0.55);
-      background: rgba(79,70,229,0.08);
-      mix-blend-mode: multiply;
-      transition: width 160ms ease, height 160ms ease, background-color 160ms ease, border-color 160ms ease;
-    }
-
-    .motion-cursor.is-interactive {
-      width: 34px;
-      height: 34px;
-      background: rgba(6,182,212,0.12);
-      border-color: rgba(6,182,212,0.52);
-    }
-
     @keyframes motionGradientDrift {
       from { transform: translate3d(-1%, -1%, 0) rotate(0deg); }
       to { transform: translate3d(1.5%, 1%, 0) rotate(1deg); }
@@ -693,10 +634,6 @@ function injectMotionStyles() {
         animation-iteration-count: 1 !important;
         scroll-behavior: auto !important;
         transition-duration: 0.001ms !important;
-      }
-
-      .motion-cursor {
-        display: none;
       }
     }
   `;

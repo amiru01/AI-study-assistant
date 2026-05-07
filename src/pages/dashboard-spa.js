@@ -257,6 +257,7 @@ function renderDashboard() {
             </div>
         </div>
     `;
+  attachNoteCardListeners();
   animateDynamicContent(contentArea);
 }
 
@@ -344,13 +345,13 @@ function createNoteCard(note) {
                 >🗑️</button>
             </div>
             <div class="note-actions">
-                <button class="note-action-btn" onclick="window.dashboardSPA.viewNote('${note.id}', 'summary')">
+                <button class="note-action-btn" data-note-id="${note.id}" data-tab="summary">
                     ✨ Summary
                 </button>
-                <button class="note-action-btn" onclick="window.dashboardSPA.viewNote('${note.id}', 'quiz')">
+                <button class="note-action-btn" data-note-id="${note.id}" data-tab="quiz">
                     ❓ Quiz
                 </button>
-                <button class="note-action-btn" onclick="window.dashboardSPA.viewNote('${note.id}', 'flashcards')">
+                <button class="note-action-btn" data-note-id="${note.id}" data-tab="flashcards">
                     🎴 Cards
                 </button>
             </div>
@@ -406,15 +407,36 @@ function attachNoteCardListeners() {
   const cards = document.querySelectorAll(".note-card");
   cards.forEach((card) => {
     card.addEventListener("click", (e) => {
-      if (!e.target.closest(".note-action-btn")) {
+      const actionButton = e.target.closest(".note-action-btn[data-tab]");
+      if (actionButton) {
+        e.preventDefault();
+        e.stopPropagation();
+        viewNote(actionButton.dataset.noteId, actionButton.dataset.tab);
+        return;
+      }
+
+      const openButton = e.target.closest("[data-open-note-id]");
+      if (openButton) {
+        e.preventDefault();
+        e.stopPropagation();
+        viewNote(openButton.dataset.openNoteId, openButton.dataset.openTab || "summary");
+        return;
+      }
+
+      if (!e.target.closest(".note-action-btn, button, a")) {
         const noteId = card.dataset.noteId;
-        viewNote(noteId, "summary");
+        if (noteId) viewNote(noteId, "summary");
       }
     });
   });
 }
 
 function viewNote(noteId, tab) {
+  if (!noteId) {
+    showToast("Unable to open this study file. Please refresh and try again.", "error");
+    return;
+  }
+
   window.location.href = `study.html?noteId=${noteId}&tab=${tab}`;
 }
 
@@ -456,6 +478,7 @@ function renderSummaries() {
             </div>
         </div>
     `;
+  attachNoteCardListeners();
   animateDynamicContent(contentArea);
 }
 
@@ -495,6 +518,7 @@ function renderQuiz() {
             </div>
         </div>
     `;
+  attachNoteCardListeners();
   animateDynamicContent(contentArea);
 }
 
@@ -536,6 +560,7 @@ function renderFlashcards() {
             </div>
         </div>
     `;
+  attachNoteCardListeners();
   animateDynamicContent(contentArea);
 }
 
@@ -606,7 +631,7 @@ function createGeneratedContentCard(item) {
             </div>
             <p style="color: #718096; font-size: 0.875rem; line-height: 1.5; margin-bottom: 1rem;">${preview}...</p>
             <div class="note-actions">
-                <button class="btn btn-primary" style="flex: 1;" onclick="window.dashboardSPA.viewNote('${item.noteId}', '${item.type === "flashcards" ? "flashcards" : item.type === "quiz" ? "quiz" : "summary"}')">Open Study</button>
+                <button class="btn btn-primary note-action-btn" style="flex: 1;" data-note-id="${item.noteId}" data-tab="${item.type === "flashcards" ? "flashcards" : item.type === "quiz" ? "quiz" : "summary"}">Open Study</button>
             </div>
         </div>
     `;
