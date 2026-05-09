@@ -1,0 +1,9 @@
+# Don't ignore anything important
+# Only ignore development files
+
+node_modules
+.git
+.vscode
+.env.local
+*.log
+.DS_Store
