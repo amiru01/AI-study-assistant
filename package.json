@@ -6,7 +6,9 @@
   "scripts": {
     "dev": "vite",
     "build": "vite build",
-    "preview": "vite preview"
+    "preview": "vite preview",
+    "vercel:deploy": "vercel --prod",
+    "vercel:preview": "vercel"
   },
   "repository": {
     "type": "git",
@@ -19,6 +21,10 @@
     "url": "https://github.com/amiru01/AI-study-assistant/issues"
   },
   "homepage": "https://github.com/amiru01/AI-study-assistant#readme",
+  "engines": {
+    "node": ">=18.0.0",
+    "npm": ">=9.0.0"
+  },
   "devDependencies": {
     "vite": "^5.4.19"
   },

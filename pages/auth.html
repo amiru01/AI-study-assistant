@@ -26,22 +26,25 @@
         /* ── Navbar ── */
         nav {
             position: relative; z-index: 10;
-            background: rgba(255,255,255,.1);
+            background: rgba(255,255,255,.15);
             backdrop-filter: blur(10px);
             padding: 1rem 2rem;
             display: flex; align-items: center; justify-content: space-between;
+            border-bottom: 1px solid rgba(255,255,255,.2);
         }
         .logo {
             display: flex; align-items: center; gap: .5rem;
-            text-decoration: none; color: white;
-            font-size: 1.25rem; font-weight: 700;
+            text-decoration: none; color: #c4b5fd;
+            font-size: 1.25rem; font-weight: 800;
+            text-shadow: 0 2px 10px rgba(0,0,0,0.4);
         }
         .back-home {
-            color: white; text-decoration: none; font-weight: 600;
+            color: #c4b5fd; text-decoration: none; font-weight: 700;
             padding: .5rem 1rem; border-radius: 8px;
             transition: background .2s;
+            text-shadow: 0 2px 6px rgba(0,0,0,0.3);
         }
-        .back-home:hover { background: rgba(255,255,255,.2); }
+        .back-home:hover { background: rgba(255,255,255,.25); }
 
         /* ── Card ── */
         .auth-container {

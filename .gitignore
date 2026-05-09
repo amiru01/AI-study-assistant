@@ -22,6 +22,7 @@ dist/
 .env.development
 .env.production
 .env.test
+.env.vercel
 src/config/env-config.js
 
 # ============================================
@@ -105,6 +106,12 @@ coverage/
 firebase-debug.log
 firestore-debug.log
 ui-debug.log
+
+# ============================================
+# VERCEL SPECIFIC
+# ============================================
+.vercel
+.vercel/
 
 # ============================================
 # UPLOADS (if storing locally during dev)
